@@ -1,3 +1,6 @@
+using ABC_Retail.Services;
+using Azure.Data.Tables;
+
 namespace ABC_Retail
 {
     public class Program
@@ -10,12 +13,17 @@ namespace ABC_Retail
             builder.Services.AddControllersWithViews();
 
             // Load environment variable securely
-            string connectionString = Environment.GetEnvironmentVariable("AzureStorageConnection");
+            string? connectionString = Environment.GetEnvironmentVariable("AzureStorageConnection");
+
 
             if (string.IsNullOrWhiteSpace(connectionString))
             {
                 throw new Exception("AzureStorageConnection environment variable not found.");
             }
+
+            // ?? Instantiate TableServiceClient and register ProductService
+            TableServiceClient tableServiceClient = new TableServiceClient(connectionString);
+            builder.Services.AddSingleton(new ProductService(tableServiceClient));
 
 
 
