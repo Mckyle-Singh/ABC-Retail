@@ -9,6 +9,16 @@ namespace ABC_Retail
             // Add services to the container.
             builder.Services.AddControllersWithViews();
 
+            // Load environment variable securely
+            string connectionString = Environment.GetEnvironmentVariable("AzureStorageConnection");
+
+            if (string.IsNullOrWhiteSpace(connectionString))
+            {
+                throw new Exception("AzureStorageConnection environment variable not found.");
+            }
+
+
+
             var app = builder.Build();
 
             // Configure the HTTP request pipeline.
