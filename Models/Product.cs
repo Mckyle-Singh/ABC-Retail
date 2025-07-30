@@ -1,11 +1,13 @@
 ﻿using Azure;
 using Azure.Data.Tables;
+using Microsoft.AspNetCore.Mvc.ModelBinding;
 
 namespace ABC_Retail.Models
 {
     public class Product:ITableEntity
     {
         public string PartitionKey { get; set; } = "Retail";           // Logical grouping
+
         public string RowKey { get; set; }                             // Unique ID (SKU or Guid)
         public string Name { get; set; }                               // Product name
         public string Category { get; set; }                           // e.g. Electronics, Apparel

@@ -1,5 +1,6 @@
 using ABC_Retail.Services;
 using Azure.Data.Tables;
+using DotNetEnv;
 
 namespace ABC_Retail
 {
@@ -11,6 +12,9 @@ namespace ABC_Retail
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+
+            // Load secrets from .env file (only for local dev)
+            Env.Load();
 
             // Load environment variable securely
             string? connectionString = Environment.GetEnvironmentVariable("AzureStorageConnection");
