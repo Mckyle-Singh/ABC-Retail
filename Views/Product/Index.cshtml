@@ -17,6 +17,7 @@ else
                 <th>Stock</th>
                 <th>Description</th>
                 <th>Image</th>
+                <th>Options</th>
             </tr>
         </thead>
         <tbody>
@@ -38,6 +39,11 @@ else
                             <span>No image</span>
                         }
                     </td>
+                    <td>
+                        <a asp-action="Edit" asp-route-rowKey="@product.RowKey" class="btn btn-sm btn-warning">Edit</a>
+                        <a asp-action="Delete" asp-route-rowKey="@product.RowKey" class="btn btn-sm btn-danger">Delete</a>
+                    </td>
+
                 </tr>
             }
         </tbody>

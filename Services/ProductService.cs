@@ -1,4 +1,5 @@
 ﻿using ABC_Retail.Models;
+using Azure;
 using Azure.Data.Tables;
 
 namespace ABC_Retail.Services
@@ -23,6 +24,22 @@ namespace ABC_Retail.Services
                 items.Add(p);
             return items;
         }
+
+        //READ: Single product by RowKey
+         public async Task<Product?> GetProductAsync(string rowKey)
+        {
+            try
+            {
+                var response = await _table.GetEntityAsync<Product>("Retail", rowKey);
+                return response.Value;
+            }
+            catch (RequestFailedException ex) when (ex.Status == 404)
+            {
+                return null; // Not found
+            }
+        }
+
+
 
         public async Task UpdateProductAsync(Product product) =>
             await _table.UpdateEntityAsync(product, product.ETag);

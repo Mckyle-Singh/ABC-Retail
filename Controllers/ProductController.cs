@@ -1,5 +1,6 @@
 ﻿using ABC_Retail.Models;
 using ABC_Retail.Services;
+using Azure;
 using DotNetEnv;
 using Microsoft.AspNetCore.Mvc;
 
@@ -73,14 +74,59 @@ namespace ABC_Retail.Controllers
             return RedirectToAction("Index");
         }
 
-
-
-
-
         public async Task<IActionResult> Index()
         {
             var products = await _productService.GetProductsAsync();
             return View(products);
         }
+
+        [HttpGet]
+        public async Task<IActionResult> Edit(string rowKey)
+        {
+            var product = await _productService.GetProductAsync(rowKey);
+            if (product == null)
+                return NotFound();
+
+            return View(product);
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Edit(Product product)
+        {
+            // Restore ETag from raw form post
+            product.ETag = new ETag(Request.Form["ETag"]);
+
+            if (!ModelState.IsValid)
+            {
+                return View(product);
+            }
+
+            try
+            {
+                var existing = await _productService.GetProductAsync(product.RowKey);
+                if (existing == null) return NotFound();
+
+                // Apply updates
+                existing.Name = product.Name;
+                existing.Category = product.Category;
+                existing.Price = product.Price;
+                existing.StockQty = product.StockQty;
+                existing.ImageUrl = product.ImageUrl;
+                existing.Description = product.Description;
+
+                await _productService.UpdateProductAsync(existing);
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Update error: {ex.Message}");
+                ModelState.AddModelError("", "Error updating product.");
+                return View(product);
+            }
+        }
+
+
+
     }
 }
