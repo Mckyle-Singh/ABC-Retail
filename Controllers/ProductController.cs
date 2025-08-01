@@ -127,6 +127,26 @@ namespace ABC_Retail.Controllers
         }
 
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Delete(string rowKey)
+        {
+            try
+            {
+                await _productService.DeleteProductAsync(rowKey);
+                return RedirectToAction("Index");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Delete error: {ex.Message}");
+                // Optional: add error message to UI
+                TempData["Error"] = "Failed to delete product.";
+                return RedirectToAction("Index");
+            }
+        }
+
+
+
 
     }
 }

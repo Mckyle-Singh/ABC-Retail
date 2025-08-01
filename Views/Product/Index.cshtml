@@ -41,7 +41,15 @@ else
                     </td>
                     <td>
                         <a asp-action="Edit" asp-route-rowKey="@product.RowKey" class="btn btn-sm btn-warning">Edit</a>
-                        <a asp-action="Delete" asp-route-rowKey="@product.RowKey" class="btn btn-sm btn-danger">Delete</a>
+                        <form asp-action="Delete" method="post" style="display:inline">
+                            @Html.AntiForgeryToken()
+                            <input type="hidden" name="rowKey" value="@product.RowKey" />
+                            <button type="submit" class="btn btn-sm btn-danger"
+                                    onclick="return confirm('Are you sure you want to delete @product.Name?')">
+                                Delete
+                            </button>
+                        </form>
+
                     </td>
 
                 </tr>
