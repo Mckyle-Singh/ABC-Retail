@@ -13,3 +13,5 @@ obj/
 # Others
 *.log
 *.db
+*.env
+
