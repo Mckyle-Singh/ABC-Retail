@@ -13,6 +13,13 @@ namespace ABC_Retail
             // Add services to the container.
             builder.Services.AddControllersWithViews();
 
+            builder.Services.AddSession(options =>
+            {
+                options.IdleTimeout = TimeSpan.FromMinutes(30); // Session timeout
+                options.Cookie.HttpOnly = true;                 // Secure the session cookie
+                options.Cookie.IsEssential = true;              // Ensure it's saved even if GDPR applies
+            });
+
             // Load secrets from .env file (only for local dev)
             Env.Load();
 
@@ -48,7 +55,7 @@ namespace ABC_Retail
             app.UseStaticFiles();
 
             app.UseRouting();
-
+            app.UseSession();
             app.UseAuthorization();
 
             app.MapControllerRoute(

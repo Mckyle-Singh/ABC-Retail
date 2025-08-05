@@ -70,7 +70,7 @@ namespace ABC_Retail.Controllers
                 ModelState.AddModelError("", "Invalid login attempt.");
                 return View(model);
             }
-
+            HttpContext.Session.SetString("CustomerEmail", customer.Email);
             TempData["SuccessMessage"] = "Login successful!";
             return RedirectToAction("Index", "Product");
 

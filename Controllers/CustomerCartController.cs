@@ -20,8 +20,14 @@ namespace ABC_Retail.Controllers
         {
             var product = await _productService.GetProductAsync(productId);
             if (product == null) return NotFound();
+            var email = HttpContext.Session.GetString("CustomerEmail");
+            if (string.IsNullOrEmpty(email))
+            {
+                TempData["Error"] = "Please log in to use the cart.";
+                return RedirectToAction("Login", "Customer");
+            }
 
-            await _cartService.AddToCartAsync( product, quantity);
+            await _cartService.AddToCartAsync( product, quantity,email);
             TempData["Message"] = $"{product.Name} added to cart!";
             return RedirectToAction("Index", "Product");
         }

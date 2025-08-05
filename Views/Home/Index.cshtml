@@ -1,8 +1,11 @@
 ﻿@{
     ViewData["Title"] = "Home Page";
+    var email = Context.Session.GetString("CustomerEmail");
+
 }
 
 <div class="text-center">
     <h1 class="display-4">Welcome</h1>
     <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
+    <p class="text-success">Logged in as: <strong>@email</strong></p>
 </div>

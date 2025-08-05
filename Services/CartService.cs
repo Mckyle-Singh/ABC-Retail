@@ -13,11 +13,11 @@ namespace ABC_Retail.Services
             _table.CreateIfNotExists();
         }
 
-        public async Task AddToCartAsync( Product product, int quantity)
+        public async Task AddToCartAsync( Product product, int quantity, string customerEmail)
         {
             var item = new CartItem
             {
-                PartitionKey = "guest@demo.local",
+                PartitionKey = customerEmail.ToLower().Trim(),  
                 RowKey = product.RowKey,             // use RowKey as product ID
                 ProductName = product.Name,
                 Quantity = quantity,
