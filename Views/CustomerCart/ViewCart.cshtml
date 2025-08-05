@@ -1,0 +1,32 @@
+﻿@model List<CartItem>
+
+<h2>Your Shopping Cart</h2>
+
+@if (!Model.Any())
+{
+    <p>Your cart is empty.</p>
+}
+else
+{
+    <table class="table table-bordered table-striped">
+        <thead>
+            <tr>
+                <th>Product</th>
+                <th>Quantity</th>
+                <th>Price (R)</th>
+                <th>Added On</th>
+            </tr>
+        </thead>
+        <tbody>
+        @foreach (var item in Model)
+        {
+            <tr>
+                <td>@item.ProductName</td>
+                <td>@item.Quantity</td>
+                <td>@item.Price</td>
+                <td>@item.AddedOn.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+            </tr>
+        }
+        </tbody>
+    </table>
+}

@@ -32,5 +32,26 @@ namespace ABC_Retail.Controllers
             return RedirectToAction("Index", "Product");
         }
 
+        [HttpGet]
+        public async Task<IActionResult> ViewCart()
+        {
+            var email = HttpContext.Session.GetString("CustomerEmail");
+            if (string.IsNullOrEmpty(email))
+            {
+                TempData["Error"] = "Please log in to view your cart.";
+                return RedirectToAction("Login", "Customer");
+            }
+
+            var cartItems = await _cartService.GetCartAsync(email);
+            // Debug log each item
+            foreach (var item in cartItems)
+            {
+                Console.WriteLine($"CartItem: {item.ProductName}, Quantity = {item.Quantity}, Price = {item.Price}");
+            }
+
+            return View(cartItems); // Assumes you have a View for this
+        }
+
+
     }
 }

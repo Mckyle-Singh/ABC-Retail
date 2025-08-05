@@ -32,12 +32,24 @@ namespace ABC_Retail.Services
         public async Task<List<CartItem>> GetCartAsync(string customerEmail)
         {
             var normalizedEmail = customerEmail.ToLower().Trim();
-            var queryResults = _table.QueryAsync<CartItem>(item => item.PartitionKey == normalizedEmail);
+            var queryResults = _table.QueryAsync<TableEntity>(item => item.PartitionKey == normalizedEmail);
 
             var cartItems = new List<CartItem>();
-            await foreach (var item in queryResults)
+            await foreach (var entity in queryResults)
             {
-                cartItems.Add(item);
+                var cartItem = new CartItem
+                {
+                    PartitionKey = entity.PartitionKey,
+                    RowKey = entity.RowKey,
+                    ProductName = entity.GetString("ProductName"),
+                    Quantity = entity.GetInt32("Quantity") ?? 0,
+                    Price = Convert.ToDecimal(entity["Price"]),  // 🔥 This is the critical fix
+                    AddedOn = entity.GetDateTime("AddedOn") ?? DateTime.MinValue,
+                    ETag = entity.ETag,
+                    Timestamp = entity.Timestamp
+                };
+
+                cartItems.Add(cartItem);
             }
 
             return cartItems;
