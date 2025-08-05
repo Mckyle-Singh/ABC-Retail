@@ -29,6 +29,7 @@ namespace ABC_Retail
             TableServiceClient tableServiceClient = new TableServiceClient(connectionString);
             builder.Services.AddSingleton(new ProductService(tableServiceClient));
             builder.Services.AddSingleton(new CustomerService(tableServiceClient));
+            builder.Services.AddSingleton(new CartService(tableServiceClient));
 
 
 
