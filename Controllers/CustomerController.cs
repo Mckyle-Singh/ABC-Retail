@@ -55,6 +55,26 @@ namespace ABC_Retail.Controllers
             return View();
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> Login(LoginCustomerViewModel model)
+        {
+            if (!ModelState.IsValid)
+                return View(model);
+
+            var customer = await _customerService.LoginCustomerAsync(
+                model.Email.ToLower().Trim(), model.Password);
+
+            if (customer == null)
+            {
+                ModelState.AddModelError("", "Invalid login attempt.");
+                return View(model);
+            }
+
+            TempData["SuccessMessage"] = "Login successful!";
+            return RedirectToAction("Index", "Product");
+
+        }
 
     }
 }

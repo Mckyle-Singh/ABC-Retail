@@ -23,7 +23,7 @@ namespace ABC_Retail.Services
 
             if (existing.HasValue) return false;
 
-            customer.PasswordHash = HashPassword(customer.PasswordHash);
+            customer.PasswordHash = HashPassword(customer.PasswordHash.Trim());
             customer.RegisteredOn = DateTime.UtcNow;
             customer.IsActive = true;
 
@@ -37,8 +37,12 @@ namespace ABC_Retail.Services
             try
             {
                 var response = await _table.GetEntityAsync<Customer>("Customer", rowKey);
-                if (VerifyPassword(password, response.Value.PasswordHash))
-                    return response.Value;
+                var customer = response.Value;
+
+                bool isValid = VerifyPassword(password.Trim(), customer.PasswordHash);
+
+                if (isValid && customer.IsActive)
+                    return customer;
 
                 return null;
             }
@@ -47,8 +51,6 @@ namespace ABC_Retail.Services
                 return null;
             }
         }
-
-        // Password handling
         private string HashPassword(string password)
         {
             using var sha = SHA256.Create();
@@ -56,8 +58,16 @@ namespace ABC_Retail.Services
             return Convert.ToBase64String(sha.ComputeHash(bytes));
         }
 
-        private bool VerifyPassword(string input, string storedHash) =>
-            HashPassword(input) == storedHash;
+        private bool VerifyPassword(string input, string storedHash)
+        {
+            string enteredHash = HashPassword(input.Trim());
+
+            Console.WriteLine("Entered password hash: " + enteredHash);
+            Console.WriteLine("Stored password hash: " + storedHash);
+
+            return enteredHash == storedHash;
+        }
+
     }
 
 }
