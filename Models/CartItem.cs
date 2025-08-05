@@ -3,7 +3,7 @@ using Azure.Data.Tables;
 
 namespace ABC_Retail.Models
 {
-    public class Cart:ITableEntity
+    public class CartItem:ITableEntity
     {
         public string PartitionKey { get; set; }  // customerEmail.ToLower()
         public string RowKey { get; set; }        // productId
