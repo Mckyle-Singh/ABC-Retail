@@ -29,5 +29,20 @@ namespace ABC_Retail.Services
             await _table.UpsertEntityAsync(item); // update if exists
         }
 
+        public async Task<List<CartItem>> GetCartAsync(string customerEmail)
+        {
+            var normalizedEmail = customerEmail.ToLower().Trim();
+            var queryResults = _table.QueryAsync<CartItem>(item => item.PartitionKey == normalizedEmail);
+
+            var cartItems = new List<CartItem>();
+            await foreach (var item in queryResults)
+            {
+                cartItems.Add(item);
+            }
+
+            return cartItems;
+        }
+
+
     }
 }
