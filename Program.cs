@@ -25,9 +25,11 @@ namespace ABC_Retail
                 throw new Exception("AzureStorageConnection environment variable not found.");
             }
 
-            // ?? Instantiate TableServiceClient and register ProductService
+            // Instantiate TableServiceClient and register Services
             TableServiceClient tableServiceClient = new TableServiceClient(connectionString);
             builder.Services.AddSingleton(new ProductService(tableServiceClient));
+            builder.Services.AddSingleton(new CustomerService(tableServiceClient));
+
 
 
 

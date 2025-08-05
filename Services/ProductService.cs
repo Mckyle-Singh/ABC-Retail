@@ -39,8 +39,6 @@ namespace ABC_Retail.Services
             }
         }
 
-
-
         public async Task UpdateProductAsync(Product product) =>
             await _table.UpdateEntityAsync(product, product.ETag);
 
