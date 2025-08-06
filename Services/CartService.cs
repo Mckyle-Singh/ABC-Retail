@@ -55,6 +55,27 @@ namespace ABC_Retail.Services
             return cartItems;
         }
 
+        public async Task ClearCartAsync(string customerEmail)
+        {
+            var normalizedEmail = customerEmail.ToLower().Trim();
+            var queryResults = _table.QueryAsync<TableEntity>(item => item.PartitionKey == normalizedEmail);
+
+            var batch = new List<TableTransactionAction>();
+
+            await foreach (var entity in queryResults)
+            {
+                batch.Add(new TableTransactionAction(TableTransactionActionType.Delete, entity));
+            }
+
+            if (batch.Any())
+            {
+                // Azure Table Storage allows max 100 operations per batch
+                foreach (var chunk in batch.Chunk(100))
+                {
+                    await _table.SubmitTransactionAsync(chunk.ToList());
+                }
+            }
+        }
 
     }
 }
