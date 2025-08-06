@@ -12,6 +12,7 @@ namespace ABC_Retail
 
             // Add services to the container.
             builder.Services.AddControllersWithViews();
+            builder.Services.AddHttpContextAccessor();
 
             builder.Services.AddSession(options =>
             {
