@@ -1,32 +1,62 @@
 ﻿@model List<CartItem>
 
-<h2>Your Shopping Cart</h2>
+<h2 class="mb-4">🛒 Your Shopping Cart</h2>
 
 @if (!Model.Any())
 {
-    <p>Your cart is empty.</p>
+    <div class="alert alert-info text-center">Your cart is currently empty.</div>
 }
 else
 {
-    <table class="table table-bordered table-striped">
-        <thead>
-            <tr>
-                <th>Product</th>
-                <th>Quantity</th>
-                <th>Price (R)</th>
-                <th>Added On</th>
-            </tr>
-        </thead>
-        <tbody>
-        @foreach (var item in Model)
-        {
-            <tr>
-                <td>@item.ProductName</td>
-                <td>@item.Quantity</td>
-                <td>@item.Price</td>
-                <td>@item.AddedOn.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
-            </tr>
-        }
-        </tbody>
-    </table>
+    <div class="table-responsive">
+        <table class="table table-hover align-middle">
+            <thead class="table-light">
+                <tr>
+                    <th scope="col">Product</th>
+                    <th scope="col" class="text-center">Quantity</th>
+                    <th scope="col">Price (R)</th>
+                    <th scope="col">Added On</th>
+                    <th scope="col" class="text-center">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model)
+                {
+                    <tr>
+                        <td>@item.ProductName</td>
+                        <td class="text-center">
+                            <form asp-action="UpdateQuantity" method="post" class="d-inline-flex">
+                                <input type="hidden" name="productRowKey" value="@item.RowKey" />
+                                <input type="number" name="newQty" value="@item.Quantity"
+                                       class="form-control form-control-sm me-2 w-50"
+                                       min="1" />
+                                <button type="submit" class="btn btn-sm btn-outline-primary">✔</button>
+                            </form>
+                        </td>
+                        <td>
+                            @("R" + item.Price.ToString("0.00"))
+                        </td>
+                        <td>@item.AddedOn.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
+                        <td class="text-center">
+                            <form asp-action="RemoveFromCart" method="post">
+                                <input type="hidden" name="productRowKey" value="@item.RowKey" />
+                                <button type="submit" class="btn btn-sm btn-outline-danger">🗑 Remove</button>
+                            </form>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+            <tfoot>
+                <tr class="table-light">
+                    <td colspan="5" class="text-end fw-bold">
+                        @("R" + Model.Sum(i => i.Price * i.Quantity).ToString("0.00"))
+                    </td>
+                </tr>
+            </tfoot>
+        </table>
+    </div>
+
+    <div class="mt-4 text-end">
+        <a asp-action="Checkout" class="btn btn-success btn-lg">Proceed to Checkout</a>
+    </div>
 }
