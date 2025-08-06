@@ -37,6 +37,7 @@ namespace ABC_Retail
             builder.Services.AddSingleton(new ProductService(tableServiceClient));
             builder.Services.AddSingleton(new CustomerService(tableServiceClient));
             builder.Services.AddSingleton(new CartService(tableServiceClient));
+            builder.Services.AddSingleton(new OrderService(tableServiceClient));
 
 
 

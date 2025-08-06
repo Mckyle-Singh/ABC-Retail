@@ -56,7 +56,9 @@ else
         </table>
     </div>
 
-    <div class="mt-4 text-end">
-        <a asp-action="Checkout" class="btn btn-success btn-lg">Proceed to Checkout</a>
-    </div>
+    <form asp-controller="Checkout" asp-action="ProceedToCheckout" method="post" class="text-end mt-4">
+        @Html.AntiForgeryToken()
+        <button type="submit" class="btn btn-success btn-lg">Proceed to Checkout</button>
+    </form>
+
 }
