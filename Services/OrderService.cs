@@ -11,6 +11,7 @@ namespace ABC_Retail.Services
         public OrderService(TableServiceClient client)
         {
             _orderTable = client.GetTableClient("Orders");
+            _orderTable.CreateIfNotExists();
         }
 
         public async Task<string> PlaceOrderAsync(string customerId, List<CartItem> cartItems, decimal total)
