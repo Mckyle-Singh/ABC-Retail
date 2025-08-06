@@ -4,8 +4,64 @@
 
 }
 
-<div class="text-center">
-    <h1 class="display-4">Welcome</h1>
-    <p>Learn about <a href="https://learn.microsoft.com/aspnet/core">building Web apps with ASP.NET Core</a>.</p>
-    <p class="text-success">Logged in as: <strong>@email</strong></p>
+<div class="container py-5">
+    <div class="text-center mb-4">
+        <h1 class="display-5 fw-bold text-dark">Welcome to ABC Retail</h1>
+    </div>
+
+    <!-- 🔍 Search Bar -->
+    <div class="row justify-content-center mb-4">
+        <div class="col-md-6">
+            <div class="input-group shadow-sm">
+                <input type="text" class="form-control border-dark" placeholder="Search products..." />
+                <button class="btn btn-dark" type="button">
+                    <i class="bi bi-search"></i> Search
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🧼 Filter Section -->
+    <div class="row justify-content-center mb-5">
+        <div class="col-md-8 text-center">
+            <div class="btn-group" role="group">
+                <button type="button" class="btn btn-outline-dark">All</button>
+                <button type="button" class="btn btn-outline-dark">Electronics</button>
+                <button type="button" class="btn btn-outline-dark">Clothing</button>
+                <button type="button" class="btn btn-outline-dark">Books</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 🛍️ Product Grid -->
+    <div class="row text-center">
+        <div class="col-md-4 mb-4">
+            <div class="card border-dark shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Wireless Headphones</h5>
+                    <p class="card-text text-muted">R 899.99</p>
+                    <button class="btn btn-dark">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card border-dark shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Cotton T-Shirt</h5>
+                    <p class="card-text text-muted">R 249.99</p>
+                    <button class="btn btn-dark">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-4">
+            <div class="card border-dark shadow-sm h-100">
+                <div class="card-body">
+                    <h5 class="card-title">Novel: The Wanderer</h5>
+                    <p class="card-text text-muted">R 149.99</p>
+                    <button class="btn btn-dark">Add to Cart</button>
+                </div>
+            </div>
+        </div>
+    </div>
 </div>
+
