@@ -68,7 +68,9 @@ namespace ABC_Retail.Controllers
                 ModelState.AddModelError("", "Invalid login attempt.");
                 return View(model);
             }
+            HttpContext.Session.SetString("CustomerRowKey", customer.RowKey);
             HttpContext.Session.SetString("CustomerEmail", customer.Email);
+            HttpContext.Session.SetString("IsCustomerLoggedIn", "true");
             TempData["SuccessMessage"] = "Login successful!";
             return RedirectToAction("Index", "Product");
 

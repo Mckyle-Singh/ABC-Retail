@@ -1,8 +1,12 @@
 ﻿@inject Microsoft.AspNetCore.Http.IHttpContextAccessor HttpContextAccessor
 @{
-    var customerEmail = HttpContextAccessor.HttpContext?.Session.GetString("CustomerEmail");
+    var adminEmail = Context.Session.GetString("AdminEmail");
+    var customerEmail = Context.Session.GetString("CustomerEmail");
+    var isAdmin = !string.IsNullOrEmpty(adminEmail);
+    var isCustomer = !string.IsNullOrEmpty(customerEmail);
+
     var cartCount = HttpContextAccessor.HttpContext?.Session.GetInt32("CartCount");
-    var isLoggedIn = !string.IsNullOrEmpty(customerEmail);
+    
 }
 
 <!DOCTYPE html>
@@ -57,15 +61,25 @@
 
                     <!-- Right Side: Auth -->
                     <ul class="navbar-nav mb-2 mb-lg-0">
-                        @if (isLoggedIn)
+                        @if (isAdmin)
+                        {
+                            <li class="nav-item">
+                                <span class="nav-link text-muted">Welcome Admin, @adminEmail</span>
+                            </li>
+                            <li class="nav-item">
+                                <a class="nav-link" asp-controller="Admin" asp-action="Logout">Logout</a>
+                            </li>
+                        }
+                        else if (isCustomer)
                         {
                             <li class="nav-item">
                                 <span class="nav-link text-muted">Welcome, @customerEmail</span>
                             </li>
                             <li class="nav-item">
-                                <a class="nav-link text-dark" asp-controller="Customer" asp-action="Logout">Logout</a>
+                                <a class="nav-link" asp-controller="Customer" asp-action="Logout">Logout</a>
                             </li>
                         }
+
                         else
                         {
                             <li class="nav-item dropdown">

@@ -17,11 +17,11 @@ namespace ABC_Retail.Services
 
         }
 
-        public async Task<Admin?> LoginAdminAsync(string email, string password)
+        public async Task<Admin?> LoginAdminAsync(string rowkey, string password)
         {
             try
             {
-                var response = await _table.GetEntityAsync<Admin>("Admin", email.ToLower());
+                var response = await _table.GetEntityAsync<Admin>("Admin",rowkey);
                 var admin = response.Value;
 
                 bool isValid = VerifyPassword(password.Trim(), admin.PasswordHash);
@@ -43,10 +43,18 @@ namespace ABC_Retail.Services
         private bool VerifyPassword(string input, string storedHash)
         {
             string enteredHash = HashPassword(input.Trim());
+
+            Console.WriteLine("Entered password hash: " + enteredHash);
+            Console.WriteLine("Stored password hash: " + storedHash);
+
             return enteredHash == storedHash;
         }
 
 
+        public async Task AddAdminAsync(Admin admin)
+        {
+            await _table.AddEntityAsync(admin);
+        }
 
     }
 }
