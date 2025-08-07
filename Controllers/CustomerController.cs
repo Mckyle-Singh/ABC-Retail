@@ -48,8 +48,6 @@ namespace ABC_Retail.Controllers
             TempData["SuccessMessage"] = "Registration successful!";
             return RedirectToAction("Index", "Home");
         }
-
-
         public IActionResult Login()
         {
             return View();
@@ -74,6 +72,13 @@ namespace ABC_Retail.Controllers
             TempData["SuccessMessage"] = "Login successful!";
             return RedirectToAction("Index", "Product");
 
+        }
+
+        public IActionResult Logout()
+        {
+            HttpContext.Session.Clear(); // Clear all session data
+            TempData["SuccessMessage"] = "You have been logged out.";
+            return RedirectToAction("Login", "Customer");
         }
 
     }
