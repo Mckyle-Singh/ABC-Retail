@@ -145,8 +145,5 @@ namespace ABC_Retail.Controllers
             }
         }
 
-
-
-
     }
 }
