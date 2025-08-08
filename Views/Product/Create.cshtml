@@ -2,7 +2,7 @@
 
 <h2>Add New Product</h2>
 
-<form asp-action="Create" method="post">
+<form asp-action="Create" method="post" enctype="multipart/form-data">
     <div class="form-group">
         <label asp-for="RowKey"></label>
         <input asp-for="RowKey" class="form-control" readonly />
@@ -33,9 +33,14 @@
         <input asp-for="StockQty" class="form-control" type="number" />
     </div>
 
-    <div class="form-group">
+   @*  <div class="form-group">
         <label asp-for="ImageUrl"></label>
         <input asp-for="ImageUrl" class="form-control" />
+    </div> *@
+
+    <div class="form-group">
+        <label for="ImageFile">Upload Image</label>
+        <input type="file" asp-for="ImageFile" class="form-control" />
     </div>
 
     <div class="form-group">
