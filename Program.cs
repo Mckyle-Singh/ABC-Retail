@@ -45,6 +45,8 @@ namespace ABC_Retail
             builder.Services.AddSingleton(new OrderService(tableServiceClient));
             builder.Services.AddSingleton(new AdminService(tableServiceClient));
             builder.Services.AddScoped<BlobImageService>();
+            builder.Services.AddSingleton(new ImageUploadQueueService(connectionString, "image-upload-queue"));
+
 
 
 
