@@ -1,5 +1,6 @@
 using ABC_Retail.Services;
 using Azure.Data.Tables;
+using Azure.Storage.Blobs;
 using DotNetEnv;
 
 namespace ABC_Retail
@@ -33,6 +34,9 @@ namespace ABC_Retail
                 throw new Exception("AzureStorageConnection environment variable not found.");
             }
 
+            // Register BlobServiceClient for DI
+            builder.Services.AddSingleton(new BlobServiceClient(connectionString));
+
             // Instantiate TableServiceClient and register Services
             TableServiceClient tableServiceClient = new TableServiceClient(connectionString);
             builder.Services.AddSingleton(new ProductService(tableServiceClient));
@@ -40,6 +44,8 @@ namespace ABC_Retail
             builder.Services.AddSingleton(new CartService(tableServiceClient));
             builder.Services.AddSingleton(new OrderService(tableServiceClient));
             builder.Services.AddSingleton(new AdminService(tableServiceClient));
+            builder.Services.AddScoped<BlobImageService>();
+
 
 
 

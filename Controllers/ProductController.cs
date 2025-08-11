@@ -9,10 +9,13 @@ namespace ABC_Retail.Controllers
     public class ProductController : Controller
     {
         private readonly ProductService _productService;
+        private readonly BlobImageService _blobImageService;
 
-        public ProductController(ProductService productService)
+        public ProductController(ProductService productService ,BlobImageService blobImageService)
         {
             _productService = productService;
+            _blobImageService = blobImageService;
+
         }
 
         public async Task<IActionResult> Seed()
@@ -69,7 +72,25 @@ namespace ABC_Retail.Controllers
                 return View(product);
             }
 
+            // ✅ Upload image to Blob Storage if provided
+            if (product.ImageFile != null && product.ImageFile.Length > 0)
+            {
+                using var stream = product.ImageFile.OpenReadStream();
+                var contentType = product.ImageFile.ContentType;
+                var originalFileName = product.ImageFile.FileName;
 
+                try
+                {
+                    product.ImageUrl = await _blobImageService.UploadImageAsync(stream, originalFileName, contentType);
+                    Console.WriteLine($"Image uploaded: {product.ImageUrl}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Image upload failed: {ex.Message}");
+                    ModelState.AddModelError("ImageFile", "Image upload failed. Please try again.");
+                    return View(product);
+                }
+            }
             await _productService.AddProductAsync(product);
             return RedirectToAction("Index");
         }

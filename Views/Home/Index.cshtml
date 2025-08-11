@@ -1,4 +1,5 @@
-﻿@{
+﻿@model List<ABC_Retail.Models.Product>
+@{
     ViewData["Title"] = "Home Page";
     var email = Context.Session.GetString("CustomerEmail");
 
@@ -35,33 +36,27 @@
 
     <!-- 🛍️ Product Grid -->
     <div class="row text-center">
-        <div class="col-md-4 mb-4">
-            <div class="card border-dark shadow-sm h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Wireless Headphones</h5>
-                    <p class="card-text text-muted">R 899.99</p>
-                    <button class="btn btn-dark">Add to Cart</button>
+        @foreach (var product in Model)
+        {
+            <div class="col-md-4 mb-4">
+                <div class="card border-dark shadow-sm h-100">
+                    <img src="@product.ImageUrl" class="card-img-top" alt="@product.Name" style="height: 200px; object-fit: cover;" />
+                    <div class="card-body">
+                        <h5 class="card-title">@product.Name</h5>
+                        <p class="card-text text-muted">R @product.Price</p>
+                        <form asp-controller="CustomerCart" asp-action="AddToCart" method="post">
+                            <input type="hidden" name="ProductId" value="@product.RowKey" />
+                            <input type="hidden" name="ProductName" value="@product.Name" />
+                            <input type="hidden" name="Price" value="@product.Price" />
+                            <input type="hidden" name="Quantity" value="1" />
+                            <button type="submit" class="btn btn-dark" @(product.StockQty > 0 ? "" : "disabled")>
+                                Add to Cart
+                            </button>
+                        </form>
+                    </div>
                 </div>
             </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="card border-dark shadow-sm h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Cotton T-Shirt</h5>
-                    <p class="card-text text-muted">R 249.99</p>
-                    <button class="btn btn-dark">Add to Cart</button>
-                </div>
-            </div>
-        </div>
-        <div class="col-md-4 mb-4">
-            <div class="card border-dark shadow-sm h-100">
-                <div class="card-body">
-                    <h5 class="card-title">Novel: The Wanderer</h5>
-                    <p class="card-text text-muted">R 149.99</p>
-                    <button class="btn btn-dark">Add to Cart</button>
-                </div>
-            </div>
-        </div>
+        }
     </div>
 </div>
 
