@@ -68,6 +68,19 @@ namespace ABC_Retail.Services
             return enteredHash == storedHash;
         }
 
+        public async Task<List<Customer>> GetActiveCustomersAsync()
+        {
+            var customers = new List<Customer>();
+
+            await foreach (var customer in _table.QueryAsync<Customer>(c => c.PartitionKey == "Customer" && c.IsActive))
+            {
+                customers.Add(customer);
+            }
+
+            return customers;
+        }
+
+
     }
 
 }

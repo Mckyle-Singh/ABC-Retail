@@ -15,13 +15,17 @@ namespace ABC_Retail.Controllers
         private readonly ProductService _productService;
         private readonly BlobImageService _blobImageService;
         private readonly ImageUploadQueueService _queueService;
+        private readonly CustomerService _customerService;
 
-        public AdminController(AdminService adminService, ProductService productService, BlobImageService blobImageService, ImageUploadQueueService queueService)
+
+        public AdminController(AdminService adminService, ProductService productService, BlobImageService blobImageService, ImageUploadQueueService queueService, CustomerService customerService)
         {
             _adminService = adminService;
             _productService = productService;
             _blobImageService = blobImageService;
             _queueService = queueService;
+            _customerService = customerService;
+
         }
 
         private string HashPassword(string password)
@@ -200,6 +204,13 @@ namespace ABC_Retail.Controllers
                 return RedirectToAction("ManageProducts");
             }
         }
+
+        public async Task<IActionResult> ViewCustomers()
+        {
+            var customers = await _customerService.GetActiveCustomersAsync();
+            return View(customers);
+        }
+
 
         public IActionResult Logout()
         {
