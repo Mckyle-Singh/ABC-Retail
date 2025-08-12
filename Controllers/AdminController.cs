@@ -94,7 +94,16 @@ namespace ABC_Retail.Controllers
             return View("ManageProducts", products);
         }
 
-
+        // GET: Product/Create
+        public IActionResult CreateProduct()
+        {
+            var product = new Product
+            {
+                RowKey = Guid.NewGuid().ToString(),
+                PartitionKey = "Retail"
+            };
+            return View(product);
+        }
 
         public IActionResult Logout()
         {
