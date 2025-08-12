@@ -183,6 +183,23 @@ namespace ABC_Retail.Controllers
             return RedirectToAction("ManageProducts");
         }
 
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> DeleteProduct(string rowKey)
+        {
+            try
+            {
+                await _productService.DeleteProductAsync(rowKey);
+                TempData["SuccessMessage"] = "🗑️ Product deleted successfully.";
+                return RedirectToAction("ManageProducts");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"Delete error: {ex.Message}");
+                TempData["ErrorMessage"] = "❌ Failed to delete product. Please try again.";
+                return RedirectToAction("ManageProducts");
+            }
+        }
 
         public IActionResult Logout()
         {
