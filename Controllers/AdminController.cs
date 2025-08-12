@@ -11,10 +11,12 @@ namespace ABC_Retail.Controllers
     public class AdminController : Controller
     {
         private readonly AdminService _adminService;
+        private readonly ProductService _productService;
 
-        public AdminController(AdminService adminService)
+        public AdminController(AdminService adminService, ProductService productService)
         {
             _adminService = adminService;
+            _productService = productService;
         }
 
         private string HashPassword(string password)
@@ -83,6 +85,15 @@ namespace ABC_Retail.Controllers
 
             return View(viewModel);
         }
+
+        public async Task<IActionResult> ManageProducts()
+        {
+            var products = await _productService.GetProductsAsync();
+
+            // Intention: Display all products for administrative review and action
+            return View("ManageProducts", products);
+        }
+
 
 
         public IActionResult Logout()
