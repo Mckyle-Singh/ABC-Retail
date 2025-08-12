@@ -1,4 +1,5 @@
 ﻿using ABC_Retail.Models;
+using ABC_Retail.Models.DTOs;
 using ABC_Retail.Services;
 using Azure;
 using DotNetEnv;
@@ -10,12 +11,14 @@ namespace ABC_Retail.Controllers
     {
         private readonly ProductService _productService;
         private readonly BlobImageService _blobImageService;
+        private readonly ImageUploadQueueService _queueService;
 
-        public ProductController(ProductService productService ,BlobImageService blobImageService)
+
+        public ProductController(ProductService productService ,BlobImageService blobImageService, ImageUploadQueueService queueService)
         {
             _productService = productService;
             _blobImageService = blobImageService;
-
+            _queueService = queueService;
         }
 
         public async Task<IActionResult> Seed()
@@ -54,6 +57,7 @@ namespace ABC_Retail.Controllers
             product.PartitionKey = "Retail";
             product.RowKey = Guid.NewGuid().ToString(); // unique SKU
 
+
             // 👉 Log the value from the form submission
             Console.WriteLine($"Incoming RowKey: {product.RowKey}");
 
@@ -72,12 +76,14 @@ namespace ABC_Retail.Controllers
                 return View(product);
             }
 
+            string? originalFileName = null;
+
             // ✅ Upload image to Blob Storage if provided
             if (product.ImageFile != null && product.ImageFile.Length > 0)
             {
                 using var stream = product.ImageFile.OpenReadStream();
                 var contentType = product.ImageFile.ContentType;
-                var originalFileName = product.ImageFile.FileName;
+                originalFileName = product.ImageFile.FileName;
 
                 try
                 {
@@ -91,6 +97,30 @@ namespace ABC_Retail.Controllers
                     return View(product);
                 }
             }
+            // ✅ Enqueue image processing message
+            if (!string.IsNullOrWhiteSpace(product.ImageUrl))
+            {
+                var message = new ImageUploadQueueMessageDto
+                {
+                    BlobUrl = product.ImageUrl,
+                    FileName = originalFileName,
+                    UploadedByUserId = User.Identity?.Name ?? "system",
+                    UploadedAt = DateTime.UtcNow,
+                    ProductId = product.RowKey
+                };
+
+                try
+                {
+                    await _queueService.EnqueueImageUploadAsync(message);
+                    Console.WriteLine($"Image upload message enqueued for product {product.RowKey}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to enqueue image upload: {ex.Message}");
+                    // Optional: log but don’t block product creation
+                }
+            }
+
             await _productService.AddProductAsync(product);
             return RedirectToAction("Index");
         }
