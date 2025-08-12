@@ -66,8 +66,24 @@ namespace ABC_Retail.Controllers
 
             HttpContext.Session.SetString("AdminEmail", admin.Email);
             TempData["SuccessMessage"] = "Welcome, Admin!";
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Dashboard", "Admin");
         }
+
+        public IActionResult Dashboard()
+        {
+            var email = HttpContext.Session.GetString("AdminEmail");
+            if (string.IsNullOrEmpty(email))
+                return RedirectToAction("Login","Admin");
+
+            var viewModel = new AdminDashboardViewModel
+            {
+                AdminEmail = email
+                // We'll add metrics later
+            };
+
+            return View(viewModel);
+        }
+
 
         public IActionResult Logout()
         {
