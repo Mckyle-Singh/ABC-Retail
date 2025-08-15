@@ -16,16 +16,18 @@ namespace ABC_Retail.Controllers
         private readonly BlobImageService _blobImageService;
         private readonly ImageUploadQueueService _queueService;
         private readonly CustomerService _customerService;
+        private readonly OrderService _orderService;
 
 
-        public AdminController(AdminService adminService, ProductService productService, BlobImageService blobImageService, ImageUploadQueueService queueService, CustomerService customerService)
+
+        public AdminController(AdminService adminService, ProductService productService, BlobImageService blobImageService, ImageUploadQueueService queueService, CustomerService customerService, OrderService orderService)
         {
             _adminService = adminService;
             _productService = productService;
             _blobImageService = blobImageService;
             _queueService = queueService;
             _customerService = customerService;
-
+            _orderService = orderService;
         }
 
         private string HashPassword(string password)
@@ -210,6 +212,14 @@ namespace ABC_Retail.Controllers
             var customers = await _customerService.GetActiveCustomersAsync();
             return View(customers);
         }
+
+        public async Task<IActionResult> ViewAllOrders()
+        {
+            var orders = await _orderService.GetAllOrdersAsync();
+            return View(orders);
+        }
+
+
 
 
         public IActionResult Logout()
