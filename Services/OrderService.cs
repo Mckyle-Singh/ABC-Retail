@@ -37,5 +37,16 @@ namespace ABC_Retail.Services
             return response.Value;
         }
 
+        public async Task<List<Order>> GetAllOrdersAsync()
+        {
+            var orders = new List<Order>();
+            await foreach (var order in _orderTable.QueryAsync<Order>())
+            {
+                orders.Add(order);
+            }
+            return orders;
+        }
+
+
     }
 }
