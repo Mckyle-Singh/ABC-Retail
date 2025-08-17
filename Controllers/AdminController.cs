@@ -4,6 +4,7 @@ using ABC_Retail.Models.ViewModels;
 using ABC_Retail.Services;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
 
@@ -216,6 +217,8 @@ namespace ABC_Retail.Controllers
         public async Task<IActionResult> ViewAllOrders()
         {
             var orders = await _orderService.GetAllOrdersAsync();
+            var first = orders.FirstOrDefault();
+            Console.WriteLine($"Name: {first?.CustomerName}, Total: {first?.TotalAmount}, Email: {first?.Email}");
             return View(orders);
         }
 

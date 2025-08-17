@@ -1,4 +1,5 @@
 ﻿using ABC_Retail.Models;
+using Azure;
 using Azure.Data.Tables;
 using Newtonsoft.Json;
 
@@ -7,16 +8,22 @@ namespace ABC_Retail.Services
     public class OrderService
     {
         private readonly TableClient _orderTable;
+        private readonly TableClient _customerTable;
+
 
         public OrderService(TableServiceClient client)
         {
             _orderTable = client.GetTableClient("Orders");
             _orderTable.CreateIfNotExists();
+            _customerTable = client.GetTableClient("Customers");
+
+
         }
 
-        public async Task<string> PlaceOrderAsync(string customerId, List<CartItem> cartItems, decimal total)
+        public async Task<string> PlaceOrderAsync(string customerId, List<CartItem> cartItems, double total)
         {
             var orderId = Guid.NewGuid().ToString();
+
             var order = new Order
             {
                 PartitionKey = customerId,
@@ -24,7 +31,10 @@ namespace ABC_Retail.Services
                 Timestamp = DateTimeOffset.UtcNow,
                 Status = "Placed",
                 CartSnapshotJson = JsonConvert.SerializeObject(cartItems),
-                TotalAmount = total
+                TotalAmount = total,
+                Email = customerId, // assuming customerId is the email
+               // CustomerName = customerName,
+
             };
 
             await _orderTable.AddEntityAsync(order);
@@ -40,13 +50,25 @@ namespace ABC_Retail.Services
         public async Task<List<Order>> GetAllOrdersAsync()
         {
             var orders = new List<Order>();
+
             await foreach (var order in _orderTable.QueryAsync<Order>())
             {
+                order.Email = order.PartitionKey;
+                var normalizedEmail = order.Email.Trim().ToLower();
+                try
+                {
+                    var customerResponse = await _customerTable.GetEntityAsync<Customer>("Customer", normalizedEmail);
+                    order.CustomerName = customerResponse.Value.FullName;
+                }
+                catch (RequestFailedException)
+                {
+                    order.CustomerName = "Unknown";
+                }
+
                 orders.Add(order);
             }
+
             return orders;
         }
-
-
     }
 }

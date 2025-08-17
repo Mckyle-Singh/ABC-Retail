@@ -1,0 +1,57 @@
+﻿@model List<Order>
+@{
+    Layout = "~/Views/Shared/_AdminLayout.cshtml";
+    ViewData["Title"] = "Orders";
+}
+
+<div class="container-fluid mt-4">
+    <h2 class="mb-4">🧾 All Orders</h2>
+
+    @if (!Model.Any())
+    {
+        <div class="alert alert-info">No orders found.</div>
+    }
+    else
+    {
+        <div class="row row-cols-1 row-cols-md-2 row-cols-lg-3 g-4">
+            @foreach (var order in Model)
+            {
+                <div class="col">
+                    <div class="card shadow-sm border-0 h-100">
+                        <div class="card-body">
+                            <h5 class="card-title">Order #@order.RowKey</h5>
+                            <p class="card-text mb-1"><strong>Customer:</strong> @order.CustomerName</p>
+                            <p class="card-text mb-1"><strong>Email:</strong> @order.Email</p>
+                            <p class="card-text mb-1"><strong>Total:</strong> @order.TotalAmount.ToString("C")</p>
+                            <p class="card-text mb-1">
+                                <strong>Status:</strong>
+                                <span class="badge bg-@GetStatusColor(order.Status)">
+                                    @order.Status
+                                </span>
+                            </p>
+                            <p class="card-text text-muted"><small>@order.Timestamp?.ToLocalTime().ToString("f")</small></p>
+                        </div>
+                        <div class="card-footer bg-transparent border-0 d-flex justify-content-between">
+                            <a href="@Url.Action("OrderDetails", "Admin", new { id = order.RowKey })" class="btn btn-sm btn-outline-primary">Details</a>
+                            <button class="btn btn-sm btn-outline-success">Mark as Shipped</button>
+                        </div>
+                    </div>
+                </div>
+            }
+        </div>
+    }
+</div>
+
+@functions {
+    string GetStatusColor(string status)
+    {
+        return status switch
+        {
+            "Placed" => "secondary",
+            "Processing" => "warning",
+            "Shipped" => "success",
+            "Cancelled" => "danger",
+            _ => "light"
+        };
+    }
+}
