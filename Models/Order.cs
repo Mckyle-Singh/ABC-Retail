@@ -12,7 +12,7 @@ namespace ABC_Retail.Models
 
         public string Status { get; set; }       // "Placed", "Processing", etc.
         public string CartSnapshotJson { get; set; } // Serialized cart items
-        public decimal TotalAmount { get; set; }
+        public double TotalAmount { get; set; }
 
         // Optional metadata
         public string CustomerName { get; set; }

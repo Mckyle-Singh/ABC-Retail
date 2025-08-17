@@ -32,7 +32,8 @@ namespace ABC_Retail.Controllers
                 return RedirectToAction("Cart", "CustomerCart");
             }
 
-            var total = cartItems.Sum(item => item.Price * item.Quantity);
+            double total = (double)cartItems.Sum(item => item.Price * item.Quantity);
+
 
             var orderId = await _orderService.PlaceOrderAsync(email, cartItems, total);
 
