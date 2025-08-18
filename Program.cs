@@ -38,18 +38,26 @@ namespace ABC_Retail
             builder.Services.AddSingleton(new BlobServiceClient(connectionString));
 
             // Instantiate TableServiceClient and register Services
+            // Instantiate TableServiceClient and register it
             TableServiceClient tableServiceClient = new TableServiceClient(connectionString);
+            builder.Services.AddSingleton<TableServiceClient>(tableServiceClient);
+
+            //Register Queue Services
+            builder.Services.AddSingleton(new ImageUploadQueueService(connectionString, "image-upload-queue"));
+            builder.Services.AddSingleton(new OrderPlacedQueueService(connectionString, "order-placed-queue"));
+
             builder.Services.AddSingleton(new ProductService(tableServiceClient));
             builder.Services.AddSingleton(new CustomerService(tableServiceClient));
             builder.Services.AddSingleton(new CartService(tableServiceClient));
-            builder.Services.AddSingleton(new OrderService(tableServiceClient));
             builder.Services.AddSingleton(new AdminService(tableServiceClient));
             builder.Services.AddScoped<BlobImageService>();
-            builder.Services.AddSingleton(new ImageUploadQueueService(connectionString, "image-upload-queue"));
 
-
-
-
+            // Register OrderService with both dependencies
+            builder.Services.AddSingleton(sp =>
+            {
+                var orderQueueService = sp.GetRequiredService<OrderPlacedQueueService>();
+                return new OrderService(tableServiceClient, orderQueueService);
+            });
 
 
             var app = builder.Build();

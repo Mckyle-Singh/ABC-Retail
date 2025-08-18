@@ -1,4 +1,5 @@
 ﻿using ABC_Retail.Models;
+using ABC_Retail.Models.DTOs;
 using Azure;
 using Azure.Data.Tables;
 using Newtonsoft.Json;
@@ -9,15 +10,15 @@ namespace ABC_Retail.Services
     {
         private readonly TableClient _orderTable;
         private readonly TableClient _customerTable;
+        private readonly OrderPlacedQueueService _queueService;
 
 
-        public OrderService(TableServiceClient client)
+        public OrderService(TableServiceClient client, OrderPlacedQueueService queueService)
         {
             _orderTable = client.GetTableClient("Orders");
             _orderTable.CreateIfNotExists();
             _customerTable = client.GetTableClient("Customers");
-
-
+            _queueService = queueService;
         }
 
         public async Task<string> PlaceOrderAsync(string customerId, List<CartItem> cartItems, double total)
@@ -38,8 +39,24 @@ namespace ABC_Retail.Services
             };
 
             await _orderTable.AddEntityAsync(order);
+
+            var message = new OrderPlacedQueueMessageDto
+            {
+                OrderId = orderId,
+                CustomerId = customerId,
+                Status = "Placed",
+                TotalAmount = total,
+                CartSnapshotJson = JsonConvert.SerializeObject(cartItems),
+                Email = customerId,
+                PlacedAt = DateTime.UtcNow
+            };
+
+            await _queueService.EnqueueOrderAsync(message);
+
             return orderId;
         }
+
+
 
         public async Task<Order> GetOrderByIdAsync(string customerId, string orderId)
         {
