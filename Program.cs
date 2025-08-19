@@ -1,4 +1,7 @@
 using ABC_Retail.Services;
+using ABC_Retail.Services.Logging.Core;
+using ABC_Retail.Services.Logging.Domains.Products;
+using ABC_Retail.Services.Logging.File_Logging;
 using Azure.Data.Tables;
 using Azure.Storage.Blobs;
 using DotNetEnv;
@@ -28,17 +31,19 @@ namespace ABC_Retail
             // Load environment variable securely
             string? connectionString = Environment.GetEnvironmentVariable("AzureStorageConnection");
 
-
             if (string.IsNullOrWhiteSpace(connectionString))
             {
                 throw new Exception("AzureStorageConnection environment variable not found.");
             }
 
+            // Set UNC path for centralized logging (Azure File Share)
+            Environment.SetEnvironmentVariable("LogBasePath", @"\\st10118454.file.core.windows.net\product-logs");
+
+
             // Register BlobServiceClient for DI
             builder.Services.AddSingleton(new BlobServiceClient(connectionString));
 
             // Instantiate TableServiceClient and register Services
-            // Instantiate TableServiceClient and register it
             TableServiceClient tableServiceClient = new TableServiceClient(connectionString);
             builder.Services.AddSingleton<TableServiceClient>(tableServiceClient);
 
@@ -46,6 +51,7 @@ namespace ABC_Retail
             builder.Services.AddSingleton(new ImageUploadQueueService(connectionString, "image-upload-queue"));
             builder.Services.AddSingleton(new OrderPlacedQueueService(connectionString, "order-placed-queue"));
 
+            // Register Core Domain Services
             builder.Services.AddSingleton(new ProductService(tableServiceClient));
             builder.Services.AddSingleton(new CustomerService(tableServiceClient));
             builder.Services.AddSingleton(new CartService(tableServiceClient));
@@ -58,6 +64,18 @@ namespace ABC_Retail
                 var orderQueueService = sp.GetRequiredService<OrderPlacedQueueService>();
                 return new OrderService(tableServiceClient, orderQueueService);
             });
+
+            // Register Logging Infrastructure
+            builder.Services.AddSingleton<ILogPathResolver>(sp =>
+            {
+                var logBasePath = Environment.GetEnvironmentVariable("LogBasePath");
+                return new FileLogPathResolver(logBasePath);
+            });
+
+
+            builder.Services.AddSingleton<ILogWriter, FileLogWriter>();
+            builder.Services.AddScoped<ProductLogService>();
+
 
 
             var app = builder.Build();
