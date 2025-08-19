@@ -2,6 +2,7 @@
 using ABC_Retail.Models.DTOs;
 using ABC_Retail.Models.ViewModels;
 using ABC_Retail.Services;
+using ABC_Retail.Services.Logging.Domains.Products;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
@@ -18,10 +19,10 @@ namespace ABC_Retail.Controllers
         private readonly ImageUploadQueueService _queueService;
         private readonly CustomerService _customerService;
         private readonly OrderService _orderService;
-
-
-
-        public AdminController(AdminService adminService, ProductService productService, BlobImageService blobImageService, ImageUploadQueueService queueService, CustomerService customerService, OrderService orderService)
+        private readonly ProductLogService _productLogService;
+        public AdminController(AdminService adminService, ProductService productService, 
+            BlobImageService blobImageService, ImageUploadQueueService queueService, 
+            CustomerService customerService, OrderService orderService , ProductLogService productLogService)
         {
             _adminService = adminService;
             _productService = productService;
@@ -29,6 +30,7 @@ namespace ABC_Retail.Controllers
             _queueService = queueService;
             _customerService = customerService;
             _orderService = orderService;
+            _productLogService = productLogService;
         }
 
         private string HashPassword(string password)
@@ -186,6 +188,10 @@ namespace ABC_Retail.Controllers
             }
 
             await _productService.AddProductAsync(product);
+            //  Log product creation
+            await _productLogService.LogProductAddedAsync(product.RowKey);
+
+
             TempData["SuccessMessage"] = "✅ Product created successfully.";
             return RedirectToAction("ManageProducts");
         }
