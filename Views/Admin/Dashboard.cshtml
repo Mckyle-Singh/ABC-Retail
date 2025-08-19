@@ -1,5 +1,69 @@
 ﻿@model ABC_Retail.Models.ViewModels.AdminDashboardViewModel
+
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     ViewData["Title"] = "Admin Dashboard";
 }
+
+<div class="container mt-4">
+    <h2 class="mb-4">Welcome, Admin</h2>
+
+    <!-- Metrics -->
+    <div class="row mb-4">
+        <div class="col-md-3">
+            <div class="card text-white bg-primary mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Total Customers</h5>
+                    <p class="card-text">1,245</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-success mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Orders Today</h5>
+                    <p class="card-text">87</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-warning mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Pending Shipments</h5>
+                    <p class="card-text">34</p>
+                </div>
+            </div>
+        </div>
+        <div class="col-md-3">
+            <div class="card text-white bg-danger mb-3">
+                <div class="card-body">
+                    <h5 class="card-title">Support Tickets</h5>
+                    <p class="card-text">12</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Recent Activity -->
+    <div class="card mb-4">
+        <div class="card-header">Recent Activity</div>
+        <div class="card-body">
+            <ul class="list-group list-group-flush">
+                <li class="list-group-item">Customer <strong>Jane Doe</strong> registered</li>
+                <li class="list-group-item">Order #1023 marked as shipped</li>
+                <li class="list-group-item">Admin <strong>mckyle@abc.com</strong> logged in</li>
+                <li class="list-group-item">Product <strong>EcoSmart Kettle</strong> updated</li>
+            </ul>
+        </div>
+    </div>
+
+    <!-- System Status -->
+    <div class="card">
+        <div class="card-header">System Status</div>
+        <div class="card-body">
+            <p>Azure File Share: <span class="badge bg-success">Connected</span></p>
+            <p>Logging Service: <span class="badge bg-success">Operational</span></p>
+            <p>Database: <span class="badge bg-success">Healthy</span></p>
+        </div>
+    </div>
+</div>
