@@ -11,6 +11,8 @@ namespace ABC_Retail.Services
         private readonly TableClient _orderTable;
         private readonly TableClient _customerTable;
         private readonly OrderPlacedQueueService _queueService;
+        private readonly TableClient _productTable;
+
 
 
         public OrderService(TableServiceClient client, OrderPlacedQueueService queueService)
@@ -19,6 +21,7 @@ namespace ABC_Retail.Services
             _orderTable.CreateIfNotExists();
             _customerTable = client.GetTableClient("Customers");
             _queueService = queueService;
+            _productTable = client.GetTableClient("Products");
         }
 
         public async Task<string> PlaceOrderAsync(string customerId, List<CartItem> cartItems, double total)
