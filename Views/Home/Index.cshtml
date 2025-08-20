@@ -44,6 +44,10 @@
                     <div class="card-body">
                         <h5 class="card-title">@product.Name</h5>
                         <p class="card-text text-muted">R @product.Price</p>
+                        <p class="card-text @(product.StockQty == 0 ? "text-danger" : "text-success")">
+                            <strong>In Stock:</strong> @product.StockQty
+                        </p>
+
                         <form asp-controller="CustomerCart" asp-action="AddToCart" method="post">
                             <input type="hidden" name="ProductId" value="@product.RowKey" />
                             <input type="hidden" name="ProductName" value="@product.Name" />
