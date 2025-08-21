@@ -29,7 +29,7 @@ namespace ABC_Retail.Controllers
 
             await _cartService.AddToCartAsync( product, quantity,email);
             TempData["Message"] = $"{product.Name} added to cart!";
-            return RedirectToAction("Index", "Product");
+            return RedirectToAction("Index", "Home");
         }
 
         [HttpPost]

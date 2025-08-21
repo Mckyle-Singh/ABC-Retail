@@ -228,9 +228,6 @@ namespace ABC_Retail.Controllers
             return View(orders);
         }
 
-
-
-
         public IActionResult Logout()
         {
             HttpContext.Session.Clear(); // Clear all session data
