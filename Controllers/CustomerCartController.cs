@@ -32,6 +32,19 @@ namespace ABC_Retail.Controllers
             return RedirectToAction("Index", "Product");
         }
 
+        [HttpPost]
+        public async Task<IActionResult> UpdateQuantity(string productRowKey, int newQty)
+        {
+            var email = HttpContext.Session.GetString("CustomerEmail");
+            if (string.IsNullOrEmpty(email))
+                return RedirectToAction("Login", "Customer");
+
+            await _cartService.UpdateQuantityAsync(productRowKey, newQty, email);
+
+            return RedirectToAction("ViewCart");
+        }
+
+
         [HttpGet]
         public async Task<IActionResult> ViewCart()
         {

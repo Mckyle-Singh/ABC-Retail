@@ -72,7 +72,7 @@ namespace ABC_Retail.Controllers
             HttpContext.Session.SetString("CustomerEmail", customer.Email);
             HttpContext.Session.SetString("IsCustomerLoggedIn", "true");
             TempData["SuccessMessage"] = "Login successful!";
-            return RedirectToAction("Index", "Product");
+            return RedirectToAction("Index", "Home");
 
         }
 

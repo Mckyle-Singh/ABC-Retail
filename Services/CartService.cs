@@ -1,4 +1,5 @@
 ﻿using ABC_Retail.Models;
+using Azure;
 using Azure.Data.Tables;
 
 namespace ABC_Retail.Services
@@ -51,9 +52,39 @@ namespace ABC_Retail.Services
 
                 cartItems.Add(cartItem);
             }
+            // 🧪 Diagnostic log to trace quantity values
+            foreach (var item in cartItems)
+            {
+                Console.WriteLine($"[CartService → GetCartAsync] Product: {item.RowKey}, Quantity: {item.Quantity}");
+            }
+
 
             return cartItems;
         }
+
+        public async Task UpdateQuantityAsync(string productRowKey, int newQty, string customerEmail)
+        {
+            var normalizedEmail = customerEmail.ToLower().Trim();
+
+            if (string.IsNullOrWhiteSpace(productRowKey) || newQty < 1)
+                throw new ArgumentException("Invalid product key or quantity.");
+
+            try
+            {
+                var response = await _table.GetEntityAsync<TableEntity>(normalizedEmail, productRowKey);
+                var entity = response.Value;
+
+                entity["Quantity"] = newQty;
+
+                await _table.UpdateEntityAsync(entity, ETag.All, TableUpdateMode.Replace);
+            }
+            catch (RequestFailedException ex)
+            {
+                Console.WriteLine($"[CartService → UpdateQuantityAsync] Azure Table error: {ex.Message}");
+                throw;
+            }
+        }
+
 
         public async Task ClearCartAsync(string customerEmail)
         {
