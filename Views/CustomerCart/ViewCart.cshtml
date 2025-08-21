@@ -29,13 +29,11 @@ else
                                 <input type="hidden" name="productRowKey" value="@item.RowKey" />
                                 <input type="number" name="newQty" value="@item.Quantity"
                                        class="form-control form-control-sm me-2 w-50"
-                                       min="1" />
-                                <button type="submit" class="btn btn-sm btn-outline-primary">✔</button>
+                                       min="1"
+                                       onchange="this.form.submit()" />
                             </form>
                         </td>
-                        <td>
-                            @("R" + item.Price.ToString("0.00"))
-                        </td>
+                        <td>@("R" + item.Price.ToString("0.00"))</td>
                         <td>@item.AddedOn.ToLocalTime().ToString("yyyy-MM-dd HH:mm")</td>
                         <td class="text-center">
                             <form asp-action="RemoveFromCart" method="post">
@@ -60,5 +58,4 @@ else
         @Html.AntiForgeryToken()
         <button type="submit" class="btn btn-success btn-lg">Proceed to Checkout</button>
     </form>
-
 }

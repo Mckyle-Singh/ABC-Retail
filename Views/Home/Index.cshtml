@@ -48,15 +48,25 @@
                             <strong>In Stock:</strong> @product.StockQty
                         </p>
 
-                        <form asp-controller="CustomerCart" asp-action="AddToCart" method="post">
+                        <form asp-controller="CustomerCart" asp-action="AddToCart" method="post" class="d-flex align-items-center gap-2">
                             <input type="hidden" name="ProductId" value="@product.RowKey" />
                             <input type="hidden" name="ProductName" value="@product.Name" />
                             <input type="hidden" name="Price" value="@product.Price" />
-                            <input type="hidden" name="Quantity" value="1" />
-                            <button type="submit" class="btn btn-dark" @(product.StockQty > 0 ? "" : "disabled")>
+
+                            <input type="number" name="Quantity"
+                                   value="1"
+                                   min="1"
+                                   max="@product.StockQty"
+                                   class="form-control form-control-sm w-25"
+                                   title="Select quantity" />
+
+                            <button type="submit"
+                                    class="btn btn-dark"
+                            @(product.StockQty > 0 ? "" : "disabled")>
                                 Add to Cart
                             </button>
                         </form>
+
                     </div>
                 </div>
             </div>

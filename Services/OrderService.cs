@@ -11,6 +11,8 @@ namespace ABC_Retail.Services
         private readonly TableClient _orderTable;
         private readonly TableClient _customerTable;
         private readonly OrderPlacedQueueService _queueService;
+        private readonly TableClient _productTable;
+
 
 
         public OrderService(TableServiceClient client, OrderPlacedQueueService queueService)
@@ -19,10 +21,24 @@ namespace ABC_Retail.Services
             _orderTable.CreateIfNotExists();
             _customerTable = client.GetTableClient("Customers");
             _queueService = queueService;
+            _productTable = client.GetTableClient("Products");
         }
 
         public async Task<string> PlaceOrderAsync(string customerId, List<CartItem> cartItems, double total)
         {
+            // 🔍 Diagnostic: Check quantities before serialization
+            foreach (var item in cartItems)
+            {
+                Console.WriteLine($"[Snapshot] Product: {item.RowKey}, Quantity: {item.Quantity}");
+            }
+
+            var cartSnapshotJson = JsonConvert.SerializeObject(cartItems);
+            var stockUpdated = await DecrementStockAsync(cartSnapshotJson);
+            if (!stockUpdated)
+            {
+                throw new InvalidOperationException("Insufficient stock for one or more items.");
+            }
+
             var orderId = Guid.NewGuid().ToString();
 
             var order = new Order
@@ -56,7 +72,28 @@ namespace ABC_Retail.Services
             return orderId;
         }
 
+        private async Task<bool> DecrementStockAsync(string cartSnapshotJson)
+        {
+            var cartItems = JsonConvert.DeserializeObject<List<CartItem>>(cartSnapshotJson);
 
+            foreach (var item in cartItems)
+            {
+                var response = await _productTable.GetEntityAsync<Product>("Retail", item.RowKey);
+                var product = response.Value;
+
+                if (product.StockQty < item.Quantity)
+                {
+                    // Optional: log insufficient stock
+                    return false;
+                }
+
+                product.StockQty -= item.Quantity;
+
+                await _productTable.UpdateEntityAsync(product, product.ETag, TableUpdateMode.Replace);
+            }
+
+            return true;
+        }
 
         public async Task<Order> GetOrderByIdAsync(string customerId, string orderId)
         {
