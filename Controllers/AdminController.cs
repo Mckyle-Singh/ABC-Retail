@@ -3,6 +3,7 @@ using ABC_Retail.Models.DTOs;
 using ABC_Retail.Models.ViewModels;
 using ABC_Retail.Services;
 using ABC_Retail.Services.Logging.Domains.Products;
+using ABC_Retail.Services.Queues;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;

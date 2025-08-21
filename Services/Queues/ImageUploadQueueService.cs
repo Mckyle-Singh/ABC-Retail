@@ -2,7 +2,7 @@
 using Azure.Storage.Queues;
 using System.Text.Json;
 
-namespace ABC_Retail.Services
+namespace ABC_Retail.Services.Queues
 {
     public class ImageUploadQueueService
     {
