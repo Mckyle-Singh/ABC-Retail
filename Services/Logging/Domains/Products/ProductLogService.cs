@@ -17,15 +17,9 @@ namespace ABC_Retail.Services.Logging.Domains.Products
             await _logWriter.WriteAsync(LogDomain.Products, message);
         }
 
-        public async Task LogStockUpdatedAsync(string productId, int oldQty, int newQty)
+        public async Task LogProductUpdatedAsync(string productId)
         {
-            var message = $"Stock updated for Product {productId}: {oldQty} → {newQty}";
-            await _logWriter.WriteAsync(LogDomain.Products, message);
-        }
-
-        public async Task LogPriceChangedAsync(string productId, decimal oldPrice, decimal newPrice)
-        {
-            var message = $"Price updated for Product {productId}: {oldPrice:C} → {newPrice:C}";
+            var message = $"Product {productId} details updated";
             await _logWriter.WriteAsync(LogDomain.Products, message);
         }
 

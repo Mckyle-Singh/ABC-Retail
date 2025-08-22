@@ -284,7 +284,7 @@ namespace ABC_Retail.Controllers
             try
             {
                 await _productService.UpdateProductAsync(updatedProduct);
-                //await _productLogService.LogProductUpdatedAsync(updatedProduct.RowKey);
+                await _productLogService.LogProductUpdatedAsync(updatedProduct.RowKey);
             }
             catch (RequestFailedException ex)
             {
