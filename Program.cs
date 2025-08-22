@@ -63,6 +63,8 @@ namespace ABC_Retail
                 return new QueueClient(connectionString, queueName);
             });
             builder.Services.AddHostedService<ProductChangeProcessor>();
+            builder.Services.AddSingleton<IProductChangeStore, ProductChangeStore>();
+
 
 
             // Register Core Domain Services

@@ -2,9 +2,9 @@
 {
     public class ProductChangeViewModel
     {
-        public string ProductId { get; set; }
+        public string ProductName { get; set; }
         public string ChangeType { get; set; } // e.g., "PriceUpdated", "StockDecremented"
-        public string Description { get; set; }
+        public string Details { get; set; }
         public DateTime Timestamp { get; set; }
 
     }
