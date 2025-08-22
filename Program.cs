@@ -51,9 +51,16 @@ namespace ABC_Retail
             //Register Queue Services
             builder.Services.AddSingleton(new ImageUploadQueueService(connectionString, "image-upload-queue"));
             builder.Services.AddSingleton(new OrderPlacedQueueService(connectionString, "order-placed-queue"));
+            builder.Services.AddSingleton(new ProductQueueService(connectionString, "product-updates-queue"));
 
             // Register Core Domain Services
-            builder.Services.AddSingleton(new ProductService(tableServiceClient));
+            builder.Services.AddSingleton(sp =>
+            {
+                var tableClient = sp.GetRequiredService<TableServiceClient>();
+                var productQueue = sp.GetRequiredService<ProductQueueService>();
+                return new ProductService(tableClient, productQueue);
+            });
+
             builder.Services.AddSingleton(new CustomerService(tableServiceClient));
             builder.Services.AddSingleton(new CartService(tableServiceClient));
             builder.Services.AddSingleton(new AdminService(tableServiceClient));
