@@ -61,6 +61,7 @@
             <a href="@Url.Action("Logout", "Admin")"><i class="fas fa-sign-out-alt me-2"></i> Logout</a>
         </div>
         <div class="admin-content">
+            @Html.Partial("_StatusMessage")
             @RenderBody()
         </div>
     </div>
