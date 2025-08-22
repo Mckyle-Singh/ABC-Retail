@@ -2,9 +2,11 @@ using ABC_Retail.Services;
 using ABC_Retail.Services.Logging.Core;
 using ABC_Retail.Services.Logging.Domains.Products;
 using ABC_Retail.Services.Logging.File_Logging;
+using ABC_Retail.Services.Messaging;
 using ABC_Retail.Services.Queues;
 using Azure.Data.Tables;
 using Azure.Storage.Blobs;
+using Azure.Storage.Queues;
 using DotNetEnv;
 
 namespace ABC_Retail
@@ -52,6 +54,15 @@ namespace ABC_Retail
             builder.Services.AddSingleton(new ImageUploadQueueService(connectionString, "image-upload-queue"));
             builder.Services.AddSingleton(new OrderPlacedQueueService(connectionString, "order-placed-queue"));
             builder.Services.AddSingleton(new ProductQueueService(connectionString, "product-updates-queue"));
+
+            // Register QueueReaderService and its QueueClient
+            builder.Services.AddSingleton<IQueueReaderService, QueueReaderService>();
+            builder.Services.AddSingleton(sp =>
+            {
+                const string queueName = "product-updates-queue";
+                return new QueueClient(connectionString, queueName);
+            });
+
 
             // Register Core Domain Services
             builder.Services.AddSingleton(sp =>
