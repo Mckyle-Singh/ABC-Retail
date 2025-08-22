@@ -71,7 +71,8 @@ namespace ABC_Retail.Controllers
             HttpContext.Session.SetString("CustomerRowKey", customer.RowKey);
             HttpContext.Session.SetString("CustomerEmail", customer.Email);
             HttpContext.Session.SetString("IsCustomerLoggedIn", "true");
-            TempData["SuccessMessage"] = "Login successful!";
+            TempData["SuccessMessage"] = "Welcome back, " + customer.FullName + "!";
+
             return RedirectToAction("Index", "Home");
 
         }

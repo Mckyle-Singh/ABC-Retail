@@ -5,6 +5,9 @@
 
 }
 
+@Html.Partial("_StatusMessage")
+
+
 <div class="container py-5">
     <div class="text-center mb-4">
         <h1 class="display-5 fw-bold text-dark">Welcome to ABC Retail</h1>
@@ -73,4 +76,14 @@
         }
     </div>
 </div>
+<script>
+    setTimeout(() => {
+        const alerts = document.querySelectorAll('.alert');
+        alerts.forEach(alert => {
+            alert.classList.remove('show');
+            alert.classList.add('fade');
+            setTimeout(() => alert.remove(), 500);
+        });
+    }, 3000);
+</script>
 

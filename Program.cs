@@ -2,6 +2,7 @@ using ABC_Retail.Services;
 using ABC_Retail.Services.Logging.Core;
 using ABC_Retail.Services.Logging.Domains.Products;
 using ABC_Retail.Services.Logging.File_Logging;
+using ABC_Retail.Services.Queues;
 using Azure.Data.Tables;
 using Azure.Storage.Blobs;
 using DotNetEnv;

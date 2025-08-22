@@ -1,5 +1,6 @@
 ﻿using ABC_Retail.Models;
 using ABC_Retail.Models.DTOs;
+using ABC_Retail.Services.Queues;
 using Azure;
 using Azure.Data.Tables;
 using Newtonsoft.Json;

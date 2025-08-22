@@ -1,6 +1,7 @@
 ﻿using ABC_Retail.Models;
 using ABC_Retail.Models.DTOs;
 using ABC_Retail.Services;
+using ABC_Retail.Services.Queues;
 using Azure;
 using DotNetEnv;
 using Microsoft.AspNetCore.Mvc;

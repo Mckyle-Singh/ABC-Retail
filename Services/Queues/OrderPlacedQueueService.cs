@@ -4,7 +4,7 @@ using Newtonsoft.Json;
 using System.Text;
 
 
-namespace ABC_Retail.Services
+namespace ABC_Retail.Services.Queues
 {
     public class OrderPlacedQueueService
     {
