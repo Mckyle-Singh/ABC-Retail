@@ -62,6 +62,7 @@ namespace ABC_Retail
                 const string queueName = "product-updates-queue";
                 return new QueueClient(connectionString, queueName);
             });
+            builder.Services.AddHostedService<ProductChangeProcessor>();
 
 
             // Register Core Domain Services
