@@ -33,7 +33,6 @@ namespace ABC_Retail.Models
         public string Description { get; set; }
 
         [IgnoreDataMember]
-        [Required(ErrorMessage = "Please upload an image")]
         public IFormFile? ImageFile { get; set; }
 
         public DateTimeOffset? Timestamp { get; set; }

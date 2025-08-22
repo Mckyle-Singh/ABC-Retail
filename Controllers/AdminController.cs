@@ -4,6 +4,7 @@ using ABC_Retail.Models.ViewModels;
 using ABC_Retail.Services;
 using ABC_Retail.Services.Logging.Domains.Products;
 using ABC_Retail.Services.Queues;
+using Azure;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
@@ -196,6 +197,106 @@ namespace ABC_Retail.Controllers
             TempData["SuccessMessage"] = "✅ Product created successfully.";
             return RedirectToAction("ManageProducts");
         }
+
+        // GET: /Product/Edit/{rowKey}
+        [HttpGet]
+        public async Task<IActionResult> EditProduct(string rowKey)
+        {
+            var product = await _productService.GetProductAsync(rowKey);
+            if (product == null)
+                return NotFound();
+
+            return View(product); // Pass to Razor view
+        }
+
+        [HttpPost]
+        [ValidateAntiForgeryToken]
+        public async Task<IActionResult> EditProduct(Product updatedProduct)
+        {
+            updatedProduct.PartitionKey = "Retail"; // Ensure PartitionKey is set
+
+            if (!ModelState.IsValid)
+            {
+                // Rehydrate image preview if validation fails
+                var existing = await _productService.GetProductAsync(updatedProduct.RowKey);
+                updatedProduct.ImageUrl = existing?.ImageUrl;
+                updatedProduct.ETag = existing?.ETag ?? default;
+                return View(updatedProduct);
+            }
+
+            string? originalFileName = null;
+
+            // ✅ Upload new image if provided
+            if (updatedProduct.ImageFile?.Length > 0)
+            {
+                using var stream = updatedProduct.ImageFile.OpenReadStream();
+                var contentType = updatedProduct.ImageFile.ContentType;
+                originalFileName = updatedProduct.ImageFile.FileName;
+
+                try
+                {
+                    updatedProduct.ImageUrl = await _blobImageService.UploadImageAsync(stream, originalFileName, contentType);
+                    Console.WriteLine($"Image updated: {updatedProduct.ImageUrl}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Image upload failed: {ex.Message}");
+                    ModelState.AddModelError("ImageFile", "Image upload failed. Please try again.");
+                    return View(updatedProduct);
+                }
+
+                // ✅ Enqueue image update message
+                var message = new ImageUploadQueueMessageDto
+                {
+                    BlobUrl = updatedProduct.ImageUrl,
+                    FileName = originalFileName,
+                    UploadedByUserId = User.Identity?.Name ?? "system",
+                    UploadedAt = DateTime.UtcNow,
+                    ProductId = updatedProduct.RowKey
+                };
+
+                try
+                {
+                    await _queueService.EnqueueImageUploadAsync(message);
+                    Console.WriteLine($"Image update message enqueued for product {updatedProduct.RowKey}");
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"Failed to enqueue image update: {ex.Message}");
+                    // Optional: log but don’t block update
+                }
+            }
+            else
+            {
+                // Preserve existing image if no new file uploaded
+                var existing = await _productService.GetProductAsync(updatedProduct.RowKey);
+                updatedProduct.ImageUrl = existing?.ImageUrl;
+            }
+
+            // ✅ Defensive ETag fallback
+            if (updatedProduct.ETag == default)
+            {
+                var existing = await _productService.GetProductAsync(updatedProduct.RowKey);
+                updatedProduct.ETag = existing?.ETag ?? default;
+            }
+
+            // ✅ Update product in Azure Table Storage
+            try
+            {
+                await _productService.UpdateProductAsync(updatedProduct);
+                await _productLogService.LogProductUpdatedAsync(updatedProduct.RowKey);
+            }
+            catch (RequestFailedException ex)
+            {
+                Console.WriteLine($"Update failed: {ex.Message}");
+                ModelState.AddModelError("", "Failed to update product. Please try again.");
+                return View(updatedProduct);
+            }
+
+            TempData["SuccessMessage"] = "✅ Product updated successfully.";
+            return RedirectToAction("ManageProducts");
+        }
+
 
         [HttpPost]
         [ValidateAntiForgeryToken]
