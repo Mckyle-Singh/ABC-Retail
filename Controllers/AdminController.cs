@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
 using System.Security.Cryptography;
 using System.Text;
+using static ABC_Retail.Models.ViewModels.AdminDashboardViewModel;
 
 namespace ABC_Retail.Controllers
 {
@@ -95,8 +96,31 @@ namespace ABC_Retail.Controllers
 
             var viewModel = new AdminDashboardViewModel
             {
-                AdminEmail = email
-                // We'll add metrics later
+                AdminEmail = email,
+                // 🧪 Hardcoded product lifecycle events for UI prototyping
+                ProductChanges = new List<ProductChange>
+                {
+                    new ProductChange
+                    {
+                        ProductName = "EcoSmart Kettle",
+                        ChangeType = "Create",
+                        Timestamp = DateTime.UtcNow.AddMinutes(-15)
+                    },
+                    new ProductChange
+                    {
+                        ProductName = "Wireless Mouse",
+                        ChangeType = "Update",
+                        Timestamp = DateTime.UtcNow.AddMinutes(-10),
+                        Details = "Price: 299.99 → 279.99, Stock: 150 → 120"
+                    },
+                    new ProductChange
+                    {
+                        ProductName = "Old Model Toaster",
+                        ChangeType = "Delete",
+                        Timestamp = DateTime.UtcNow.AddMinutes(-5)
+                    }
+                }
+
             };
 
             return View(viewModel);
