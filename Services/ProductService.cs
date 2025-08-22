@@ -17,6 +17,7 @@ namespace ABC_Retail.Services
         public async Task AddProductAsync(Product product) =>
             await _table.AddEntityAsync(product);
 
+        //READ: All products
         public async Task<List<Product>> GetProductsAsync()
         {
             var items = new List<Product>();
@@ -38,7 +39,6 @@ namespace ABC_Retail.Services
                 return null; // Not found
             }
         }
-
         public async Task UpdateProductAsync(Product product) =>
             await _table.UpdateEntityAsync(product, product.ETag);
 
