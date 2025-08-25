@@ -72,7 +72,8 @@ namespace ABC_Retail
             builder.Services.AddSingleton(sp =>
             {
                 var orderQueueService = sp.GetRequiredService<OrderPlacedQueueService>();
-                return new OrderService(tableServiceClient, orderQueueService);
+                var stockReminderQueueService = sp.GetRequiredService<StockReminderQueueService>();
+                return new OrderService(tableServiceClient, orderQueueService, stockReminderQueueService);
             });
 
             // Register Logging Infrastructure

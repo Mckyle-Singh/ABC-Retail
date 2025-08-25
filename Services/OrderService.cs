@@ -13,16 +13,18 @@ namespace ABC_Retail.Services
         private readonly TableClient _customerTable;
         private readonly OrderPlacedQueueService _queueService;
         private readonly TableClient _productTable;
+        private readonly StockReminderQueueService _stockReminderQueueService;
 
 
 
-        public OrderService(TableServiceClient client, OrderPlacedQueueService queueService)
+        public OrderService(TableServiceClient client, OrderPlacedQueueService queueService, StockReminderQueueService stockReminderQueueService)
         {
             _orderTable = client.GetTableClient("Orders");
             _orderTable.CreateIfNotExists();
             _customerTable = client.GetTableClient("Customers");
             _queueService = queueService;
             _productTable = client.GetTableClient("Products");
+            _stockReminderQueueService = stockReminderQueueService;
         }
 
         public async Task<string> PlaceOrderAsync(string customerId, List<CartItem> cartItems, double total)
@@ -91,6 +93,22 @@ namespace ABC_Retail.Services
                 product.StockQty -= item.Quantity;
 
                 await _productTable.UpdateEntityAsync(product, product.ETag, TableUpdateMode.Replace);
+                // 🔔 Trigger queue if stock falls below threshold
+                const int threshold = 5;
+                if (product.StockQty < threshold)
+                {
+                    var reminder = new StockReminderQueueMessageDto
+                    {
+                        ProductId = product.RowKey,
+                        ProductName = product.Name,
+                        CurrentStock = product.StockQty,
+                        Threshold = threshold,
+                        TriggeredAt = DateTime.UtcNow
+                    };
+
+                    await _stockReminderQueueService.EnqueueReminderAsync(reminder);
+                }
+
             }
 
             return true;
