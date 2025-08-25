@@ -345,7 +345,18 @@ namespace ABC_Retail.Controllers
         {
             try
             {
+                var product = await _productService.GetProductAsync(rowKey);
+
                 await _productService.DeleteProductAsync(rowKey);
+                // Log the deletion
+                await _productLogService.LogProductDeletedAsync(
+                    product.RowKey,
+                    product.Name,
+                    product.Price,
+                    product.StockQty
+                );
+
+
                 TempData["SuccessMessage"] = "🗑️ Product deleted successfully.";
                 return RedirectToAction("ManageProducts");
             }

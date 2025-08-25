@@ -34,5 +34,12 @@ namespace ABC_Retail.Services.Logging.Domains.Products
 
         }
 
+        public async Task LogProductDeletedAsync(string productId, string name, double price, int stockQty)
+        {
+            var message = $"🔴 <strong>{name}</strong> deleted — Last known Price: <strong>{price}</strong>, Stock: <strong>{stockQty}</strong>";
+            await _logWriter.WriteAsync(LogDomain.Products, message);
+        }
+
+
     }
 }
