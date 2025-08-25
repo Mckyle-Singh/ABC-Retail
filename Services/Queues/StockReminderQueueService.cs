@@ -25,5 +25,29 @@ namespace ABC_Retail.Services.Queues
             var base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(json));
             await _queueClient.SendMessageAsync(base64);
         }
+
+        public async Task<List<StockReminderQueueMessageDto>> PeekRecentRemindersAsync(int maxMessages = 32)
+        {
+            var result = new List<StockReminderQueueMessageDto>();
+            var peeked = await _queueClient.PeekMessagesAsync(maxMessages);
+
+            foreach (var msg in peeked.Value)
+            {
+                try
+                {
+                    var json = Encoding.UTF8.GetString(Convert.FromBase64String(msg.MessageText));
+                    var dto = JsonSerializer.Deserialize<StockReminderQueueMessageDto>(json);
+                    if (dto != null)
+                        result.Add(dto);
+                }
+                catch
+                {
+                    // Optional: log or skip malformed messages
+                }
+            }
+
+            return result;
+        }
+
     }
 }
