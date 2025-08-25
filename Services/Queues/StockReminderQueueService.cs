@@ -7,28 +7,23 @@ namespace ABC_Retail.Services.Queues
 {
     public class StockReminderQueueService
     {
+
         private readonly QueueClient _queueClient;
-        private readonly ILogger<StockReminderQueueService> _logger;
 
-        public StockReminderQueueService(IConfiguration config, ILogger<StockReminderQueueService> logger)
+        public StockReminderQueueService(string? connectionString, string queueName)
         {
-            _logger = logger;
-
-            var connectionString = config["AzureStorage:ConnectionString"];
-            var queueName = config["AzureStorage:StockReminderQueueName"];
+            if (string.IsNullOrWhiteSpace(connectionString))
+                throw new ArgumentException("Storage connection string is missing.");
 
             _queueClient = new QueueClient(connectionString, queueName);
-            _queueClient.CreateIfNotExists();
+            _queueClient.CreateIfNotExists(); // Ensures queue exists
         }
 
-        public async Task EnqueueReminderAsync(StockReminderQueueMessageDto messageDto)
+        public async Task EnqueueReminderAsync(StockReminderQueueMessageDto message)
         {
-            var payload = JsonSerializer.Serialize(messageDto);
-            _logger.LogInformation("Enqueuing stock reminder: {Payload}", payload);
-
-            var encoded = Convert.ToBase64String(Encoding.UTF8.GetBytes(payload));
-            await _queueClient.SendMessageAsync(encoded);
+            var json = JsonSerializer.Serialize(message);
+            var base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(json));
+            await _queueClient.SendMessageAsync(base64);
         }
-
     }
 }

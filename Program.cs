@@ -52,6 +52,7 @@ namespace ABC_Retail
             builder.Services.AddSingleton(new ImageUploadQueueService(connectionString, "image-upload-queue"));
             builder.Services.AddSingleton(new OrderPlacedQueueService(connectionString, "order-placed-queue"));
             builder.Services.AddSingleton(new ProductQueueService(connectionString, "product-updates-queue"));
+            builder.Services.AddSingleton(new StockReminderQueueService(connectionString, "stock-reminder-queue"));
 
             // Register Core Domain Services
             builder.Services.AddSingleton(sp =>
