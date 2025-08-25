@@ -2,17 +2,21 @@
 using ABC_Retail.Models.DTOs;
 using ABC_Retail.Models.ViewModels;
 using ABC_Retail.Services;
+using ABC_Retail.Services.Logging;
+using ABC_Retail.Services.Logging.Core;
 using ABC_Retail.Services.Logging.Domains.Products;
 using ABC_Retail.Services.Queues;
 using Azure;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using System.Reflection.Metadata;
 using System.Security.Cryptography;
 using System.Text;
 
 namespace ABC_Retail.Controllers
 {
+
     public class AdminController : Controller
     {
         private readonly AdminService _adminService;
@@ -22,9 +26,12 @@ namespace ABC_Retail.Controllers
         private readonly CustomerService _customerService;
         private readonly OrderService _orderService;
         private readonly ProductLogService _productLogService;
+        private readonly ILogReader _logReader;
+
+
         public AdminController(AdminService adminService, ProductService productService, 
             BlobImageService blobImageService, ImageUploadQueueService queueService, 
-            CustomerService customerService, OrderService orderService , ProductLogService productLogService)
+            CustomerService customerService, OrderService orderService , ProductLogService productLogService , ILogReader logReader)
         {
             _adminService = adminService;
             _productService = productService;
@@ -33,6 +40,7 @@ namespace ABC_Retail.Controllers
             _customerService = customerService;
             _orderService = orderService;
             _productLogService = productLogService;
+            _logReader = logReader;
         }
 
         private string HashPassword(string password)
@@ -87,19 +95,38 @@ namespace ABC_Retail.Controllers
             return RedirectToAction("Dashboard", "Admin");
         }
 
-        public IActionResult Dashboard()
+        public async Task<IActionResult> Dashboard()
         {
             var email = HttpContext.Session.GetString("AdminEmail");
             if (string.IsNullOrEmpty(email))
                 return RedirectToAction("Login","Admin");
 
+            var allLines = await _logReader.ReadLinesAsync(LogDomain.Products);
+
+            var logs = allLines
+                    .Where(line =>
+                        !line.Contains("details updated") &&
+                        !line.EndsWith("updated —"))
+                    .OrderByDescending(line => LogUtils.ExtractTimestamp(line))
+                    .Take(20)
+                    .Select(line =>
+                    {
+                        var timestamp = LogUtils.ExtractTimestamp(line);
+                        var formatted = LogUtils.FormatTimestamp(timestamp);
+                        var message = line.Split(" - ", 2)[1]; // Everything after the timestamp
+                        return $"{formatted} - {message}";
+                    })
+                    .ToList();
+
             var viewModel = new AdminDashboardViewModel
             {
-                AdminEmail = email
-                // We'll add metrics later
+                AdminEmail = email,
+                ProductChangeFeed = logs
             };
 
             return View(viewModel);
+
+
         }
 
         public async Task<IActionResult> ManageProducts()
@@ -191,7 +218,12 @@ namespace ABC_Retail.Controllers
 
             await _productService.AddProductAsync(product);
             //  Log product creation
-            await _productLogService.LogProductAddedAsync(product.RowKey);
+            await _productLogService.LogProductAddedAsync(
+            product.RowKey,
+            product.Name,
+            product.Price,
+            product.StockQty);
+
 
 
             TempData["SuccessMessage"] = "✅ Product created successfully.";
@@ -281,10 +313,19 @@ namespace ABC_Retail.Controllers
             }
 
             // ✅ Update product in Azure Table Storage
+            var originalProduct = await _productService.GetProductAsync(updatedProduct.RowKey);
             try
             {
                 await _productService.UpdateProductAsync(updatedProduct);
-                await _productLogService.LogProductUpdatedAsync(updatedProduct.RowKey);
+                await _productLogService.LogProductUpdatedAsync(
+                   updatedProduct.RowKey,
+                   updatedProduct.Name,
+                   originalProduct.Price,
+                   updatedProduct.Price,
+                   originalProduct.StockQty,
+                   updatedProduct.StockQty);
+
+
             }
             catch (RequestFailedException ex)
             {
@@ -304,7 +345,18 @@ namespace ABC_Retail.Controllers
         {
             try
             {
+                var product = await _productService.GetProductAsync(rowKey);
+
                 await _productService.DeleteProductAsync(rowKey);
+                // Log the deletion
+                await _productLogService.LogProductDeletedAsync(
+                    product.RowKey,
+                    product.Name,
+                    product.Price,
+                    product.StockQty
+                );
+
+
                 TempData["SuccessMessage"] = "🗑️ Product deleted successfully.";
                 return RedirectToAction("ManageProducts");
             }
@@ -329,6 +381,7 @@ namespace ABC_Retail.Controllers
             Console.WriteLine($"Name: {first?.CustomerName}, Total: {first?.TotalAmount}, Email: {first?.Email}");
             return View(orders);
         }
+
 
         public IActionResult Logout()
         {

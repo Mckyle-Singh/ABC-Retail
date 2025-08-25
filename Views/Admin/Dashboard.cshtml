@@ -61,18 +61,16 @@
         <div class="card-header">Product Change Feed</div>
         <div class="card-body">
             <ul class="list-group list-group-flush">
-                <li class="list-group-item">
-                    🟢 <strong>EcoSmart Kettle</strong> created at <em>2025-08-22 13:45 UTC</em>
-                </li>
-                <li class="list-group-item">
-                    🟡 <strong>Wireless Mouse</strong> updated — Price: <s>299.99</s> → <strong>279.99</strong>, Stock: <s>150</s> → <strong>120</strong>
-                </li>
-                <li class="list-group-item">
-                    🔴 <strong>Old Model Toaster</strong> deleted at <em>2025-08-22 12:30 UTC</em>
-                </li>
+                @foreach (var line in Model.ProductChangeFeed)
+                {
+                    <li class="list-group-item">
+                        @Html.Raw(line)
+                    </li>
+                }
             </ul>
         </div>
     </div>
+
 
 
     <!-- System Status -->
