@@ -72,7 +72,8 @@ namespace ABC_Retail
             {
                 var tableClient = sp.GetRequiredService<TableServiceClient>();
                 var productQueue = sp.GetRequiredService<ProductQueueService>();
-                return new ProductService(tableClient, productQueue);
+                var logger = sp.GetRequiredService<ILogger<ProductService>>();
+                return new ProductService(tableClient, productQueue,logger);
             });
 
             builder.Services.AddSingleton(new CustomerService(tableServiceClient));

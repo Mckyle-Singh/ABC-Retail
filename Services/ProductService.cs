@@ -10,16 +10,18 @@ namespace ABC_Retail.Services
     {
         private readonly TableClient _table;
         private readonly ProductQueueService _queue;
+        private readonly ILogger<ProductService> _logger;
 
-        public ProductService(TableServiceClient serviceClient, ProductQueueService queue)
+
+        public ProductService(TableServiceClient serviceClient, ProductQueueService queue, ILogger<ProductService> logger)
         {
             _table = serviceClient.GetTableClient("Products");
             _table.CreateIfNotExists(); // Safe init
             _queue = queue;
-
+            _logger = logger;
         }
 
-       public async Task AddProductAsync(Product product)
+        public async Task AddProductAsync(Product product)
         {
             await _table.AddEntityAsync(product);
 
@@ -59,6 +61,9 @@ namespace ABC_Retail.Services
         }
         public async Task UpdateProductAsync(Product updatedProduct)
         {
+            _logger.LogInformation("🛠️ UpdateProductAsync triggered for {ProductName}", updatedProduct.Name);
+
+
             // 1️⃣ Fetch previous state
             var previousProduct = await GetProductAsync(updatedProduct.RowKey);
 

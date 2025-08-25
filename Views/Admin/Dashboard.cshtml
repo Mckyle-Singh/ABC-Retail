@@ -60,32 +60,53 @@
     <div class="card mb-4">
         <div class="card-header">Product Change Feed</div>
         <div class="card-body">
-            <ul class="list-group list-group-flush">
-                @foreach (var change in Model.ProductChanges)
-                {
-                    var icon = change.ChangeType switch
+            @if (Model.ProductChanges?.Any() == true)
+            {
+                <ul class="list-group list-group-flush">
+                    @foreach (var change in Model.ProductChanges
+                   .OrderByDescending(c => c.Timestamp)
+                   .Take(10)) // Limit to 10 most recent changes
                     {
-                        "Create" => "🟢",
-                        "Update" => "🟡",
-                        "Delete" => "🔴",
-                        _ => "⚪"
-                    };
-
-                    <li class="list-group-item mb-2">
-                        <span class="change-icon">@icon</span>
-                        <strong>@(change.ProductName ?? "Unnamed Product")</strong>
-                        <span class="change-type">@change.ChangeType.ToLower()</span>
-                        at <em title="UTC timestamp">@change.Timestamp.ToString("yyyy-MM-dd HH:mm UTC")</em>
-
-                        @if (!string.IsNullOrEmpty(change.Details))
+                        var icon = change.ChangeType switch
                         {
-                            <span class="text-muted small d-block mt-1">@change.Details</span>
-                        }
-                    </li>
-                }
-            </ul>
+                            "Create" => "🟢",
+                            "Update" => "🟡",
+                            "Delete" => "🔴",
+                            _ => "⚪"
+                        };
+
+                        var badgeClass = change.ChangeType switch
+                        {
+                            "Create" => "bg-success",
+                            "Update" => "bg-warning text-dark",
+                            "Delete" => "bg-danger",
+                            _ => "bg-secondary"
+                        };
+
+                        <li class="list-group-item mb-2">
+                            <span class="me-2">@icon</span>
+                            <strong>@(change.ProductName ?? "Unnamed Product")</strong>
+                            <span class="badge @badgeClass ms-2">@change.ChangeType</span>
+                            <div class="text-muted small mt-1">
+                                <em title="UTC timestamp">@change.Timestamp.ToString("yyyy-MM-dd HH:mm UTC")</em>
+                            </div>
+
+                            @if (!string.IsNullOrEmpty(change.Details))
+                            {
+                                <span class="text-muted small d-block mt-1">@change.Details</span>
+                            }
+                        </li>
+                    }
+                </ul>
+            }
+            else
+            {
+                <p class="text-muted">No product changes received yet.</p>
+            }
         </div>
     </div>
+
+
 
     <!-- System Status -->
     <div class="card">

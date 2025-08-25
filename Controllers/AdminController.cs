@@ -3,6 +3,7 @@ using ABC_Retail.Models.DTOs;
 using ABC_Retail.Models.ViewModels;
 using ABC_Retail.Services;
 using ABC_Retail.Services.Logging.Domains.Products;
+using ABC_Retail.Services.Messaging;
 using ABC_Retail.Services.Queues;
 using Azure;
 using Microsoft.AspNetCore.Identity;
@@ -23,9 +24,12 @@ namespace ABC_Retail.Controllers
         private readonly CustomerService _customerService;
         private readonly OrderService _orderService;
         private readonly ProductLogService _productLogService;
+        private readonly IProductChangeStore _store;
+
+
         public AdminController(AdminService adminService, ProductService productService, 
             BlobImageService blobImageService, ImageUploadQueueService queueService, 
-            CustomerService customerService, OrderService orderService , ProductLogService productLogService)
+            CustomerService customerService, OrderService orderService , ProductLogService productLogService, IProductChangeStore store )
         {
             _adminService = adminService;
             _productService = productService;
@@ -34,6 +38,8 @@ namespace ABC_Retail.Controllers
             _customerService = customerService;
             _orderService = orderService;
             _productLogService = productLogService;
+            _store = store;
+
         }
 
         private string HashPassword(string password)
@@ -94,33 +100,18 @@ namespace ABC_Retail.Controllers
             if (string.IsNullOrEmpty(email))
                 return RedirectToAction("Login","Admin");
 
+            var rawChanges = _store.LatestChanges;
+
             var viewModel = new AdminDashboardViewModel
             {
                 AdminEmail = email,
-                // 🧪 Hardcoded product lifecycle events for UI prototyping
-                ProductChanges = new List<ProductChange>
+                ProductChanges = rawChanges.Select(change => new AdminDashboardViewModel.ProductChange
                 {
-                    new ProductChange
-                    {
-                        ProductName = "EcoSmart Kettle",
-                        ChangeType = "Create",
-                        Timestamp = DateTime.UtcNow.AddMinutes(-15)
-                    },
-                    new ProductChange
-                    {
-                        ProductName = "Wireless Mouse",
-                        ChangeType = "Update",
-                        Timestamp = DateTime.UtcNow.AddMinutes(-10),
-                        Details = "Price: 299.99 → 279.99, Stock: 150 → 120"
-                    },
-                    new ProductChange
-                    {
-                        ProductName = "Old Model Toaster",
-                        ChangeType = "Delete",
-                        Timestamp = DateTime.UtcNow.AddMinutes(-5)
-                    }
-                }
-
+                    ProductName = change.ProductName,
+                    ChangeType = change.ChangeType,
+                    Timestamp = change.Timestamp,
+                    Details = change.Details
+                }).ToList()
             };
 
             return View(viewModel);
