@@ -65,6 +65,7 @@ namespace ABC_Retail
             builder.Services.AddSingleton(new CartService(tableServiceClient));
             builder.Services.AddSingleton(new AdminService(tableServiceClient));
             builder.Services.AddScoped<BlobImageService>();
+            builder.Services.AddSingleton<ILogReader, FileLogReader>();
 
             // Register OrderService with both dependencies
             builder.Services.AddSingleton(sp =>

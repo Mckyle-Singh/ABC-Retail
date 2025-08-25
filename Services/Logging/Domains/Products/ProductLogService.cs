@@ -11,16 +11,27 @@ namespace ABC_Retail.Services.Logging.Domains.Products
             _logWriter = logWriter;
         }
 
-        public async Task LogProductAddedAsync(string productId)
+        public async Task LogProductAddedAsync(string productId, string name, double price, int stockQty)
         {
-            var message = $"Product {productId} added to catalog";
+            var message = $"🟢 <strong>{name}</strong> added — Price: <strong>{price}</strong>, Stock: <strong>{stockQty}</strong>";
             await _logWriter.WriteAsync(LogDomain.Products, message);
+
         }
 
-        public async Task LogProductUpdatedAsync(string productId)
+        public async Task LogProductUpdatedAsync(string productId, string name, double previousPrice, double newPrice, int previousStockQty, int newStockQty)
         {
-            var message = $"Product {productId} details updated";
+            var priceDiff = previousPrice != newPrice
+                ? $"Price: <s>{previousPrice}</s> → <strong>{newPrice}</strong>"
+                : null;
+
+            var stockDiff = previousStockQty != newStockQty
+                ? $"Stock: <s>{previousStockQty}</s> → <strong>{newStockQty}</strong>"
+                : null;
+
+            var changes = string.Join(", ", new[] { priceDiff, stockDiff }.Where(x => x != null));
+            var message = $"🟡 <strong>{name}</strong> updated — {changes}";
             await _logWriter.WriteAsync(LogDomain.Products, message);
+
         }
 
     }
