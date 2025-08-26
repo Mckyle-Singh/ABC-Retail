@@ -27,11 +27,13 @@ namespace ABC_Retail.Controllers
         private readonly OrderService _orderService;
         private readonly ProductLogService _productLogService;
         private readonly ILogReader _logReader;
+        private readonly StockReminderQueueService _stockReminderQueueService;
 
 
         public AdminController(AdminService adminService, ProductService productService, 
             BlobImageService blobImageService, ImageUploadQueueService queueService, 
-            CustomerService customerService, OrderService orderService , ProductLogService productLogService , ILogReader logReader)
+            CustomerService customerService, OrderService orderService , ProductLogService productLogService , 
+            ILogReader logReader, StockReminderQueueService stockReminderQueueService)
         {
             _adminService = adminService;
             _productService = productService;
@@ -41,6 +43,7 @@ namespace ABC_Retail.Controllers
             _orderService = orderService;
             _productLogService = productLogService;
             _logReader = logReader;
+            _stockReminderQueueService = stockReminderQueueService;
         }
 
         private string HashPassword(string password)
@@ -118,10 +121,24 @@ namespace ABC_Retail.Controllers
                     })
                     .ToList();
 
+            // Read low stock reminders from queue
+            var reminders = await _stockReminderQueueService.PeekRecentRemindersAsync();
+
+            var reminderViewModels = reminders.Select(r => new LowStockReminderViewModel
+            {
+                ProductId = r.ProductId,
+                ProductName = r.ProductName,
+                CurrentStock = r.CurrentStock,
+                Threshold = r.Threshold,
+                UrgencyLevel = r.UrgencyLevel ?? StockUtils.ClassifyUrgency(r.CurrentStock, r.Threshold),
+                TriggeredAtFormatted = LogUtils.FormatTimestamp(r.TriggeredAt)
+            }).ToList();
+
             var viewModel = new AdminDashboardViewModel
             {
                 AdminEmail = email,
-                ProductChangeFeed = logs
+                ProductChangeFeed = logs,
+                Reminders = reminderViewModels
             };
 
             return View(viewModel);
