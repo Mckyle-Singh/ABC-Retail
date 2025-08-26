@@ -1,5 +1,6 @@
 using ABC_Retail.Services;
 using ABC_Retail.Services.Logging.Core;
+using ABC_Retail.Services.Logging.Domains.Orders;
 using ABC_Retail.Services.Logging.Domains.Products;
 using ABC_Retail.Services.Logging.File_Logging;
 using ABC_Retail.Services.Queues;
@@ -86,6 +87,8 @@ namespace ABC_Retail
 
             builder.Services.AddSingleton<ILogWriter, FileLogWriter>();
             builder.Services.AddScoped<ProductLogService>();
+            builder.Services.AddScoped<OrderLogService>();
+
 
 
 
