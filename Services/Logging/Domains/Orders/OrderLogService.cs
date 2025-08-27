@@ -1,4 +1,6 @@
-﻿using ABC_Retail.Services.Logging.Core;
+﻿using ABC_Retail.Models;
+using ABC_Retail.Services.Logging.Core;
+using Newtonsoft.Json;
 
 namespace ABC_Retail.Services.Logging.Domains.Orders
 {
@@ -10,14 +12,21 @@ namespace ABC_Retail.Services.Logging.Domains.Orders
         {
             _logWriter = logWriter;
         }
-
-        public async Task LogOrderCheckedOutAsync(string orderId, string userId, IEnumerable<string> productIds, double totalAmount, string campaignTag = null)
+        public async Task LogOrderCheckedOutAsync(Order order)
         {
-            var productList = string.Join(", ", productIds);
-            var message = $"✅ Order <strong>{orderId}</strong> checked out by <strong>{userId}</strong> — Products: [{productList}], Total: <strong>{totalAmount:C}</strong>" +
-                          (campaignTag != null ? $" — Campaign: <em>{campaignTag}</em>" : "");
+            var logEntry = new
+            {
+                orderId = order.RowKey,
+                customerId = order.PartitionKey,
+                email = order.Email,
+                total = order.TotalAmount,
+                status = order.Status,
+                placedAt = order.Timestamp?.UtcDateTime,
+                cartSnapshot = order.CartSnapshotJson
+            };
 
-            await _logWriter.WriteAsync(LogDomain.Orders, message);
+            var json = JsonConvert.SerializeObject(logEntry, Formatting.None);
+            await _logWriter.WriteAsync("orders", json);
         }
 
     }
