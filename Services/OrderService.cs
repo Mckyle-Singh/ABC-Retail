@@ -1,5 +1,6 @@
 ﻿using ABC_Retail.Models;
 using ABC_Retail.Models.DTOs;
+using ABC_Retail.Services.Logging.Domains.Orders;
 using ABC_Retail.Services.Queues;
 using Azure;
 using Azure.Data.Tables;
@@ -14,10 +15,11 @@ namespace ABC_Retail.Services
         private readonly OrderPlacedQueueService _queueService;
         private readonly TableClient _productTable;
         private readonly StockReminderQueueService _stockReminderQueueService;
+        private readonly OrderLogService _orderLogService;
 
 
 
-        public OrderService(TableServiceClient client, OrderPlacedQueueService queueService, StockReminderQueueService stockReminderQueueService)
+        public OrderService(TableServiceClient client, OrderPlacedQueueService queueService, StockReminderQueueService stockReminderQueueService, OrderLogService orderLogService)
         {
             _orderTable = client.GetTableClient("Orders");
             _orderTable.CreateIfNotExists();
@@ -25,6 +27,7 @@ namespace ABC_Retail.Services
             _queueService = queueService;
             _productTable = client.GetTableClient("Products");
             _stockReminderQueueService = stockReminderQueueService;
+            _orderLogService = orderLogService;
         }
 
         public async Task<string> PlaceOrderAsync(string customerId, List<CartItem> cartItems, double total)
@@ -71,6 +74,7 @@ namespace ABC_Retail.Services
             };
 
             await _queueService.EnqueueOrderAsync(message);
+            await _orderLogService.LogOrderCheckedOutAsync(order);
 
             return orderId;
         }

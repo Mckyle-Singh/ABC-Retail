@@ -1,5 +1,6 @@
 using ABC_Retail.Services;
 using ABC_Retail.Services.Logging.Core;
+using ABC_Retail.Services.Logging.Domains.Orders;
 using ABC_Retail.Services.Logging.Domains.Products;
 using ABC_Retail.Services.Logging.File_Logging;
 using ABC_Retail.Services.Queues;
@@ -38,7 +39,7 @@ namespace ABC_Retail
             }
 
             // Set UNC path for centralized logging (Azure File Share)
-            Environment.SetEnvironmentVariable("LogBasePath", @"\\st10118454.file.core.windows.net\product-logs");
+            Environment.SetEnvironmentVariable("LogBasePath", @"\\st10118454.file.core.windows.net\abc-retail-logs");
 
 
             // Register BlobServiceClient for DI
@@ -67,13 +68,15 @@ namespace ABC_Retail
             builder.Services.AddSingleton(new AdminService(tableServiceClient));
             builder.Services.AddScoped<BlobImageService>();
             builder.Services.AddSingleton<ILogReader, FileLogReader>();
+            builder.Services.AddSingleton<OrderLogService>();
 
             // Register OrderService with both dependencies
             builder.Services.AddSingleton(sp =>
             {
                 var orderQueueService = sp.GetRequiredService<OrderPlacedQueueService>();
                 var stockReminderQueueService = sp.GetRequiredService<StockReminderQueueService>();
-                return new OrderService(tableServiceClient, orderQueueService, stockReminderQueueService);
+                var orderLogService = sp.GetRequiredService<OrderLogService>();
+                return new OrderService(tableServiceClient, orderQueueService, stockReminderQueueService,orderLogService);
             });
 
             // Register Logging Infrastructure
@@ -86,6 +89,8 @@ namespace ABC_Retail
 
             builder.Services.AddSingleton<ILogWriter, FileLogWriter>();
             builder.Services.AddScoped<ProductLogService>();
+            
+
 
 
 
