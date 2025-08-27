@@ -54,23 +54,26 @@ namespace ABC_Retail.Controllers
         }
         public async Task<IActionResult> Seed()
         {
-            var email = "admin@example.com";
             var plainPassword = "123456";
 
-            var admin = new Admin
+            var admins = new List<Admin>
             {
-                RowKey = email.ToLower(),
-                PartitionKey = "Admin",
-                FullName = "System Administrator",
-                Email = email,
-                PasswordHash = HashPassword(plainPassword),
-                CreatedOn = DateTime.UtcNow,
-                IsActive = true
+                new Admin { RowKey = "lani.admin@gmail.com", PartitionKey = "Admin", FullName = "Lani Vee", Email = "lani.admin@gmail.com", PasswordHash = HashPassword(plainPassword), CreatedOn = DateTime.UtcNow, IsActive = true },
+                new Admin { RowKey = "theo.admin@gmail.com", PartitionKey = "Admin", FullName = "Theo Pax", Email = "theo.admin@gmail.com", PasswordHash = HashPassword(plainPassword), CreatedOn = DateTime.UtcNow, IsActive = true },
+                new Admin { RowKey = "nia.admin@gmail.com", PartitionKey = "Admin", FullName = "Nia Sol", Email = "nia.admin@gmail.com", PasswordHash = HashPassword(plainPassword), CreatedOn = DateTime.UtcNow, IsActive = true },
+                new Admin { RowKey = "jax.admin@gmail.com", PartitionKey = "Admin", FullName = "Jax Ren", Email = "jax.admin@gmail.com", PasswordHash = HashPassword(plainPassword), CreatedOn = DateTime.UtcNow, IsActive = true },
+                new Admin { RowKey = "remi.admin@gmail.com", PartitionKey = "Admin", FullName = "Remi Lux", Email = "remi.admin@gmail.com", PasswordHash = HashPassword(plainPassword), CreatedOn = DateTime.UtcNow, IsActive = true }
             };
 
-            await _adminService.AddAdminAsync(admin);
-            TempData["Message"] = "✅ Admin seeded successfully.";
+            foreach (var admin in admins)
+            {
+                await _adminService.AddAdminAsync(admin);
+            }
+
+            TempData["Message"] = "✅ 5 Admins seeded successfully.";
             return RedirectToAction("Login");
+
+
         }
         public IActionResult Login()
         {
