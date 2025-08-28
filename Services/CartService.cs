@@ -108,5 +108,21 @@ namespace ABC_Retail.Services
             }
         }
 
+        public async Task RemoveFromCartAsync(string productRowKey, string customerEmail)
+        {
+            var normalizedEmail = customerEmail.ToLower().Trim();
+
+            try
+            {
+                await _table.DeleteEntityAsync(normalizedEmail, productRowKey);
+                Console.WriteLine($"[CartService → RemoveFromCartAsync] Removed item: {productRowKey} for {normalizedEmail}");
+            }
+            catch (RequestFailedException ex)
+            {
+                Console.WriteLine($"[CartService → RemoveFromCartAsync] Azure Table error: {ex.Message}");
+                throw;
+            }
+        }
+
     }
 }

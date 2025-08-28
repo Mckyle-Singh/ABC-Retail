@@ -65,6 +65,13 @@ namespace ABC_Retail.Controllers
             return View(cartItems); // Assumes you have a View for this
         }
 
+        [HttpPost]
+        public async Task<IActionResult> RemoveFromCart(string productRowKey)
+        {
+            var customerEmail = HttpContext.Session.GetString("CustomerEmail");
+            await _cartService.RemoveFromCartAsync(productRowKey, customerEmail);
+            return RedirectToAction("ViewCart");
+        }
 
     }
 }
