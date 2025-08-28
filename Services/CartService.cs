@@ -7,11 +7,13 @@ namespace ABC_Retail.Services
     public class CartService
     {
         private readonly TableClient _table;
+        private readonly ProductService _productService;
 
-        public CartService(TableServiceClient serviceClient)
+        public CartService(TableServiceClient serviceClient, ProductService productService)
         {
             _table = serviceClient.GetTableClient("CartItems");
             _table.CreateIfNotExists();
+            _productService = productService;
         }
 
         public async Task AddToCartAsync( Product product, int quantity, string customerEmail)
@@ -69,20 +71,20 @@ namespace ABC_Retail.Services
             if (string.IsNullOrWhiteSpace(productRowKey) || newQty < 1)
                 throw new ArgumentException("Invalid product key or quantity.");
 
-            try
-            {
-                var response = await _table.GetEntityAsync<TableEntity>(normalizedEmail, productRowKey);
-                var entity = response.Value;
+            var product = await _productService.GetProductAsync(productRowKey);
+            if (product == null)
+                throw new InvalidOperationException("Product not found.");
 
-                entity["Quantity"] = newQty;
+            if (newQty > product.StockQty)
+                throw new InvalidOperationException($"Only {product.StockQty} in stock. Please adjust your quantity.");
 
-                await _table.UpdateEntityAsync(entity, ETag.All, TableUpdateMode.Replace);
-            }
-            catch (RequestFailedException ex)
-            {
-                Console.WriteLine($"[CartService → UpdateQuantityAsync] Azure Table error: {ex.Message}");
-                throw;
-            }
+            var response = await _table.GetEntityAsync<TableEntity>(normalizedEmail, productRowKey);
+            var entity = response.Value;
+
+            entity["Quantity"] = newQty;
+            await _table.UpdateEntityAsync(entity, ETag.All, TableUpdateMode.Replace);
+
+
         }
 
 

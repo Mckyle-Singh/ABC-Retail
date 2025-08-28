@@ -114,7 +114,7 @@ namespace ABC_Retail.Controllers
                         !line.Contains("details updated") &&
                         !line.EndsWith("updated —"))
                     .OrderByDescending(line => LogUtils.ExtractTimestamp(line))
-                    .Take(20)
+                    .Take(10)
                     .Select(line =>
                     {
                         var timestamp = LogUtils.ExtractTimestamp(line);
@@ -145,7 +145,6 @@ namespace ABC_Retail.Controllers
             };
 
             return View(viewModel);
-
 
         }
 

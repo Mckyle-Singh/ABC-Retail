@@ -21,26 +21,33 @@ namespace ABC_Retail.Controllers
             var email = HttpContext.Session.GetString("CustomerEmail");
             if (string.IsNullOrEmpty(email))
             {
-                TempData["Error"] = "Please log in to proceed with checkout.";
+                TempData["ErrorMessage"] = "Please log in to proceed with checkout.";
                 return RedirectToAction("Login", "Customer");
             }
 
             var cartItems = await _cartService.GetCartAsync(email);
             if (!cartItems.Any())
             {
-                TempData["Error"] = "Your cart is empty.";
-                return RedirectToAction("Cart", "CustomerCart");
+                TempData["ErrorMessage"] = "Your cart is empty.";
+                return RedirectToAction("ViewCart", "CustomerCart");
             }
 
             double total = (double)cartItems.Sum(item => item.Price * item.Quantity);
 
+            try
+            {
+                var orderId = await _orderService.PlaceOrderAsync(email, cartItems, total);
+                await _cartService.ClearCartAsync(email);
 
-            var orderId = await _orderService.PlaceOrderAsync(email, cartItems, total);
+                TempData["SuccessMessage"] = "Order placed successfully!";
+                return RedirectToAction("Index", "Home");
+            }
+            catch (InvalidOperationException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message; // e.g. "Insufficient stock for one or more items."
+                return RedirectToAction("ViewCart", "CustomerCart");
+            }
 
-            await _cartService.ClearCartAsync(email);
-
-            TempData["Message"] = "Order placed successfully!";
-            return RedirectToAction("Index", "Home");
 
         }
 
