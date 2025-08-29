@@ -64,7 +64,12 @@ namespace ABC_Retail
             });
 
             builder.Services.AddSingleton(new CustomerService(tableServiceClient));
-            builder.Services.AddSingleton(new CartService(tableServiceClient));
+            builder.Services.AddSingleton<CartService>(sp =>
+            {
+                var tableClient = sp.GetRequiredService<TableServiceClient>();
+                var productService = sp.GetRequiredService<ProductService>();
+                return new CartService(tableClient, productService);
+            });
             builder.Services.AddSingleton(new AdminService(tableServiceClient));
             builder.Services.AddScoped<BlobImageService>();
             builder.Services.AddSingleton<ILogReader, FileLogReader>();

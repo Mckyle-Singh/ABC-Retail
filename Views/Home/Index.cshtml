@@ -43,8 +43,8 @@
         {
             <div class="col-md-4 mb-4">
                 <div class="card border-dark shadow-sm h-100">
-                    <img src="@product.ImageUrl" class="card-img-top" alt="@product.Name" style="height: 200px; object-fit: cover;" />
-                    <div class="card-body">
+                    <img src="@product.ImageUrl" class="card-img-top" alt="@product.Name" style="height: 200px; object-fit: contain; background-color: #f8f9fa;" />
+                    <div class="card-body " style="background-color: #f8f9fa;">
                         <h5 class="card-title">@product.Name</h5>
                         <p class="card-text text-muted">R @product.Price</p>
                         <p class="card-text @(product.StockQty == 0 ? "text-danger" : "text-success")">

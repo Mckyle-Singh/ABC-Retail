@@ -32,8 +32,8 @@
                             <p class="card-text text-muted"><small>@order.Timestamp?.ToLocalTime().ToString("f")</small></p>
                         </div>
                         <div class="card-footer bg-transparent border-0 d-flex justify-content-between">
-                            <a href="@Url.Action("OrderDetails", "Admin", new { id = order.RowKey })" class="btn btn-sm btn-outline-primary">Details</a>
-                            <button class="btn btn-sm btn-outline-success">Mark as Shipped</button>
+                            <a href="#" class="btn btn-sm btn-outline-primary disabled">Details</a>
+                            <button type="button" class="btn btn-sm btn-outline-success" disabled>Mark as Shipped</button>
                         </div>
                     </div>
                 </div>

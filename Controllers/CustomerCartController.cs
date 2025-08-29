@@ -1,4 +1,5 @@
-﻿using ABC_Retail.Services;
+﻿using ABC_Retail.Models;
+using ABC_Retail.Services;
 using Microsoft.AspNetCore.Mvc;
 
 namespace ABC_Retail.Controllers
@@ -28,20 +29,37 @@ namespace ABC_Retail.Controllers
             }
 
             await _cartService.AddToCartAsync( product, quantity,email);
-            TempData["Message"] = $"{product.Name} added to cart!";
+            TempData["SuccessMessage"] = $"{product.Name} added to cart!";
             return RedirectToAction("Index", "Home");
         }
 
         [HttpPost]
+        [ValidateAntiForgeryToken]
         public async Task<IActionResult> UpdateQuantity(string productRowKey, int newQty)
         {
             var email = HttpContext.Session.GetString("CustomerEmail");
             if (string.IsNullOrEmpty(email))
+            {
+                TempData["ErrorMessage"] = "Please log in to update your cart.";
                 return RedirectToAction("Login", "Customer");
+            }
 
-            await _cartService.UpdateQuantityAsync(productRowKey, newQty, email);
+            try
+            {
+                await _cartService.UpdateQuantityAsync(productRowKey, newQty, email);
+                TempData["SuccessMessage"] = "Cart updated successfully.";
+            }
+            catch (InvalidOperationException ex)
+            {
+                TempData["ErrorMessage"] = ex.Message;
+            }
+            catch (Exception)
+            {
+                TempData["ErrorMessage"] = "Something went wrong while updating your cart.";
+            }
 
             return RedirectToAction("ViewCart");
+
         }
 
 
@@ -62,9 +80,16 @@ namespace ABC_Retail.Controllers
                 Console.WriteLine($"CartItem: {item.ProductName}, Quantity = {item.Quantity}, Price = {item.Price}");
             }
 
-            return View(cartItems); // Assumes you have a View for this
+            return View(cartItems); 
         }
 
+        [HttpPost]
+        public async Task<IActionResult> RemoveFromCart(string productRowKey)
+        {
+            var customerEmail = HttpContext.Session.GetString("CustomerEmail");
+            await _cartService.RemoveFromCartAsync(productRowKey, customerEmail);
+            return RedirectToAction("ViewCart");
+        }
 
     }
 }

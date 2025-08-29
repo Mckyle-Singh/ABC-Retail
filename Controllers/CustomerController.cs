@@ -46,7 +46,7 @@ namespace ABC_Retail.Controllers
             }
 
             TempData["SuccessMessage"] = "Registration successful!";
-            return RedirectToAction("Index", "Home");
+            return RedirectToAction("Login", "Customer");
         }
         public IActionResult Login()
         {
