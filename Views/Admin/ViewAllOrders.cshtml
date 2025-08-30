@@ -1,4 +1,7 @@
-﻿@model List<Order>
+﻿@using System.Globalization
+
+
+@model List<Order>
 @{
     Layout = "~/Views/Shared/_AdminLayout.cshtml";
     ViewData["Title"] = "Orders";
@@ -22,7 +25,13 @@
                             <h5 class="card-title">Order #@order.RowKey</h5>
                             <p class="card-text mb-1"><strong>Customer:</strong> @order.CustomerName</p>
                             <p class="card-text mb-1"><strong>Email:</strong> @order.Email</p>
-                            <p class="card-text mb-1"><strong>Total:</strong> @order.TotalAmount.ToString("C")</p>
+                            <p class="card-text mb-1">
+                                <strong>Total:</strong>
+                                @order.TotalAmount.ToString(
+                                         "C",
+                                         CultureInfo.CreateSpecificCulture("en-ZA")
+                                         )
+                            </p>
                             <p class="card-text mb-1">
                                 <strong>Status:</strong>
                                 <span class="badge bg-@GetStatusColor(order.Status)">
