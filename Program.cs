@@ -39,10 +39,6 @@ namespace ABC_Retail
                 throw new Exception("AzureStorageConnection environment variable not found.");
             }
 
-            // Set UNC path for centralized logging (Azure File Share)
-            Environment.SetEnvironmentVariable("LogBasePath", @"\\st10118454.file.core.windows.net\abc-retail-logs");
-
-
             // Register BlobServiceClient for DI
             builder.Services.AddSingleton(new BlobServiceClient(connectionString));
 
@@ -84,45 +80,54 @@ namespace ABC_Retail
                 return new OrderService(tableServiceClient, orderQueueService, stockReminderQueueService,orderLogService);
             });
 
-            // ------ AZURE FILE SHARE LOGGING -------
+            // ----- AZURE FILE SHARE LOGGING -------
+            // Toggle between legacy file logging and Azure File Share logging
+            var useFileShareLogs =
+                bool.TryParse(Environment.GetEnvironmentVariable("USE_AZURE_FILE_SHARE_LOGS"), out var flag)
+                && flag;
 
-            // 1) Grab a flag from config to decide which implementation to use
-            var useFileShareLogs = bool.TryParse(
-                Environment.GetEnvironmentVariable("USE_AZURE_FILE_SHARE_LOGS"),
-                out var flag
-            ) && flag;
+            // Always register the ShareServiceClient (needed for the Azure branch)
+            builder.Services.AddSingleton(sp =>
+                new ShareServiceClient(connectionString)
+            );
 
             if (useFileShareLogs)
             {
-                // 2a) Azure Files paths
+                // Azure File Share path resolver
                 var fileShareName = Environment.GetEnvironmentVariable("AzureFileShareName");
                 if (string.IsNullOrWhiteSpace(fileShareName))
                     throw new Exception("AzureFileShareName environment variable not found.");
 
-                builder.Services.AddSingleton(sp =>
-                {
-                    var conn = Environment.GetEnvironmentVariable("AzureStorageConnection")!;
-                    return new ShareServiceClient(conn);
-                });
-
                 builder.Services.AddSingleton<ILogPathResolver>(sp =>
-                {
-                    var shareSvc = sp.GetRequiredService<ShareServiceClient>();
-                    return new AzureFileSharePathResolver(shareSvc, fileShareName);
-                });
+                    new AzureFileSharePathResolver(
+                        sp.GetRequiredService<ShareServiceClient>(),
+                        fileShareName
+                    )
+                );
 
-                // 2b) You’ll later register AzureFileShareLogWriter here instead
-                builder.Services.AddSingleton<ILogWriter, AzureFileShareLogWriter>();
+                // Azure File Share log writer
+                builder.Services.AddSingleton<ILogWriter>(sp =>
+                    new AzureFileShareLogWriter(
+                        sp.GetRequiredService<ShareServiceClient>(),
+                        fileShareName,
+                        sp.GetRequiredService<ILogPathResolver>()
+                    )
+                );
             }
             else
             {
-                // 3) Legacy UNC/file-share resolver
-                var logBasePath = Environment.GetEnvironmentVariable("LogBasePath");
-                builder.Services.AddSingleton<ILogPathResolver>(sp =>
-                    new FileLogPathResolver(logBasePath)
+                // Legacy UNC mount path only in legacy mode
+                Environment.SetEnvironmentVariable(
+                    "LogBasePath",
+                    @"\\st10118454.file.core.windows.net\abc-retail-logs"
                 );
 
-                // 4) Legacy file writer
+                // Legacy file path resolver & writer
+                builder.Services.AddSingleton<ILogPathResolver>(sp =>
+                    new FileLogPathResolver(
+                        Environment.GetEnvironmentVariable("LogBasePath")
+                    )
+                );
                 builder.Services.AddSingleton<ILogWriter, FileLogWriter>();
             }
 

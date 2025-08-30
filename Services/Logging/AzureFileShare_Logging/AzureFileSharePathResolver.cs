@@ -26,15 +26,22 @@ namespace ABC_Retail.Services.Logging.AzureFileShare_Logging
             var now = DateTime.UtcNow;
             var year = now.Year.ToString();
             var month = now.Month.ToString("D2");
-            var directory = $"{domain}/{year}/{month}";
 
-            // ensure year/month directory exists
-            var dirClient = _shareClient.GetDirectoryClient(directory);
-            dirClient.CreateIfNotExists();
+            // Build and create each level: domain → domain/yyyy → domain/yyyy/MM
+            string accumulatedPath = "";
+            foreach (var segment in new[] { domain, year, month })
+            {
+                accumulatedPath = string.IsNullOrEmpty(accumulatedPath)
+                    ? segment
+                    : $"{accumulatedPath}/{segment}";
 
-            // daily log filename
+                var dirClient = _shareClient.GetDirectoryClient(accumulatedPath);
+                dirClient.CreateIfNotExists();
+            }
+
+            // Finally return the full path to today’s log file
             var fileName = $"{now:yyyy-MM-dd}.log";
-            return $"{directory}/{fileName}";
+            return $"{accumulatedPath}/{fileName}";
         }
 
 
