@@ -9,7 +9,7 @@ namespace ABC_Retail.Services.Logging.AzureFileShare_Logging
 
         public AzureFileSharePathResolver(
             ShareServiceClient shareServiceClient,
-            string shareName  // e.g. from env AZURE_FILE_SHARE_NAME
+            string shareName  //  from env AZURE_FILE_SHARE_NAME
         )
         {
             if (string.IsNullOrWhiteSpace(shareName))

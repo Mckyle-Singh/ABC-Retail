@@ -5,7 +5,7 @@ using System.Text;
 
 namespace ABC_Retail.Services.Logging.AzureFileShare_Logging
 {
-    public class AzureFileShareLogWriter:ILogWriter
+    public class AzureFileShareLogWriter : ILogWriter
     {
         private readonly ShareClient _shareClient;
         private readonly ILogPathResolver _pathResolver;
@@ -29,42 +29,48 @@ namespace ABC_Retail.Services.Logging.AzureFileShare_Logging
 
         public async Task WriteAsync(string domain, string message)
         {
-            // 1) Determine relative path like "orders/2025/08/2025-08-30.log"
+            // 1) Resolve path and clients
             var relativePath = _pathResolver.ResolvePath(domain);
             var segments = relativePath.Split('/');
             var directory = string.Join("/", segments.Take(segments.Length - 1));
             var fileName = segments.Last();
 
-            // 2) Ensure the directory exists
             var dirClient = _shareClient.GetDirectoryClient(directory);
             await dirClient.CreateIfNotExistsAsync();
-
-            // 3) Get file client
             var fileClient = dirClient.GetFileClient(fileName);
 
-            // 4) Prepare the log entry bytes
-            var logEntry = $"{DateTime.UtcNow:o} - {message}{Environment.NewLine}";
-            var contentBytes = Encoding.UTF8.GetBytes(logEntry);
-            var length = contentBytes.Length;
-
-            if (!await fileClient.ExistsAsync())
+            // 2) Download existing content (if any)
+            byte[] existing = Array.Empty<byte>();
+            if (await fileClient.ExistsAsync())
             {
-                // First write: create and upload
-                await fileClient.CreateAsync(length);
-                using var ms = new MemoryStream(contentBytes);
-                await fileClient.UploadAsync(ms);
-            }
-            else
-            {
-                // Append: get current length, then upload range
-                var props = await fileClient.GetPropertiesAsync();
-                long offset = props.Value.ContentLength;
-
-                using var ms = new MemoryStream(contentBytes);
-                var range = new HttpRange(offset, length);
-                await fileClient.UploadRangeAsync(range, ms);
+                var download = await fileClient.DownloadAsync();
+                using var src = download.Value.Content;
+                using var ms = new MemoryStream();
+                await src.CopyToAsync(ms);
+                existing = ms.ToArray();
             }
 
+            // 3) Compose new line with ISO timestamp prefix
+            var timestamp = DateTime.UtcNow.ToString("O");
+            var newLine = $"{timestamp} - {message}{Environment.NewLine}";
+            var newBytes = Encoding.UTF8.GetBytes(newLine);
+
+            // 4) Combine old + new bytes
+            var combined = new byte[existing.Length + newBytes.Length];
+            Buffer.BlockCopy(existing, 0, combined, 0, existing.Length);
+            Buffer.BlockCopy(newBytes, 0, combined, existing.Length, newBytes.Length);
+
+            // 5) Delete old file (if exists), create new with correct length, then upload
+            if (await fileClient.ExistsAsync())
+                await fileClient.DeleteAsync();
+
+            await fileClient.CreateAsync(combined.Length);
+
+            using var buffer = new MemoryStream(combined);
+            await fileClient.UploadRangeAsync(
+                new HttpRange(0, combined.Length),
+                buffer);
         }
     }
+
 }

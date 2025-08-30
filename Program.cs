@@ -18,7 +18,7 @@ namespace ABC_Retail
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // ------- Core ASP.NET Setup -------
+            //  Core ASP.NET Setup 
             builder.Services.AddControllersWithViews();
             builder.Services.AddHttpContextAccessor();
             builder.Services.AddSession(options =>
@@ -31,7 +31,7 @@ namespace ABC_Retail
             // Load secrets from .env file (only for local dev)
             Env.Load();
 
-            // -------- Storage Connection -------
+            //  Storage Connection 
 
             string? connectionString = Environment.GetEnvironmentVariable("AzureStorageConnection");
             if (string.IsNullOrWhiteSpace(connectionString))
@@ -46,7 +46,7 @@ namespace ABC_Retail
             TableServiceClient tableServiceClient = new TableServiceClient(connectionString);
             builder.Services.AddSingleton<TableServiceClient>(tableServiceClient);
 
-            //Register Queue Services
+            // Register Queue Services
             builder.Services.AddSingleton(new ImageUploadQueueService(connectionString, "image-upload-queue"));
             builder.Services.AddSingleton(new OrderPlacedQueueService(connectionString, "order-placed-queue"));
             builder.Services.AddSingleton(new ProductQueueService(connectionString, "product-updates-queue"));
@@ -68,9 +68,7 @@ namespace ABC_Retail
             });
             builder.Services.AddSingleton(new AdminService(tableServiceClient));
             builder.Services.AddScoped<BlobImageService>();
-            builder.Services.AddSingleton<ILogReader, FileLogReader>();
-            builder.Services.AddSingleton<OrderLogService>();
-
+            
             // Register OrderService with both dependencies
             builder.Services.AddSingleton(sp =>
             {
@@ -80,16 +78,14 @@ namespace ABC_Retail
                 return new OrderService(tableServiceClient, orderQueueService, stockReminderQueueService,orderLogService);
             });
 
-            // ----- AZURE FILE SHARE LOGGING -------
-            // Toggle between legacy file logging and Azure File Share logging
+            //  AZURE FILE SHARE LOGGING TOGGLE 
             var useFileShareLogs =
                 bool.TryParse(Environment.GetEnvironmentVariable("USE_AZURE_FILE_SHARE_LOGS"), out var flag)
                 && flag;
 
-            // Always register the ShareServiceClient (needed for the Azure branch)
+            // Always register ShareServiceClient (needed in both modes)
             builder.Services.AddSingleton(sp =>
-                new ShareServiceClient(connectionString)
-            );
+                new ShareServiceClient(connectionString));
 
             if (useFileShareLogs)
             {
@@ -101,38 +97,42 @@ namespace ABC_Retail
                 builder.Services.AddSingleton<ILogPathResolver>(sp =>
                     new AzureFileSharePathResolver(
                         sp.GetRequiredService<ShareServiceClient>(),
-                        fileShareName
-                    )
-                );
+                        fileShareName));
 
                 // Azure File Share log writer
                 builder.Services.AddSingleton<ILogWriter>(sp =>
                     new AzureFileShareLogWriter(
                         sp.GetRequiredService<ShareServiceClient>(),
                         fileShareName,
-                        sp.GetRequiredService<ILogPathResolver>()
-                    )
-                );
+                        sp.GetRequiredService<ILogPathResolver>()));
+
+                // Azure File Share log reader
+                builder.Services.AddSingleton<ILogReader>(sp =>
+                    new AzureFileShareLogReader(
+                        sp.GetRequiredService<ShareServiceClient>(),
+                        fileShareName,
+                        sp.GetRequiredService<ILogPathResolver>()));
             }
             else
             {
                 // Legacy UNC mount path only in legacy mode
                 Environment.SetEnvironmentVariable(
                     "LogBasePath",
-                    @"\\st10118454.file.core.windows.net\abc-retail-logs"
-                );
+                    @"\\st10118454.file.core.windows.net\abc-retail-logs");
 
                 // Legacy file path resolver & writer
                 builder.Services.AddSingleton<ILogPathResolver>(sp =>
                     new FileLogPathResolver(
-                        Environment.GetEnvironmentVariable("LogBasePath")
-                    )
-                );
-                builder.Services.AddSingleton<ILogWriter, FileLogWriter>();
-            }
+                        Environment.GetEnvironmentVariable("LogBasePath")));
 
+                builder.Services.AddSingleton<ILogWriter, FileLogWriter>();
+                builder.Services.AddSingleton<ILogReader, FileLogReader>();
+            }
+            //  end toggle 
+
+            // Logging?dependent services (must come after ILogWriter/Reader)
             builder.Services.AddScoped<ProductLogService>();
-            
+            builder.Services.AddSingleton<OrderLogService>();
 
 
             var app = builder.Build();
