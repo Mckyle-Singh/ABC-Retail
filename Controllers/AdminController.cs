@@ -109,20 +109,20 @@ namespace ABC_Retail.Controllers
 
             var allLines = await _logReader.ReadLinesAsync(LogDomain.Products);
 
+            // 2) Filter out blank lines and split on " - " (max 2 parts)
             var logs = allLines
-                    .Where(line =>
-                        !line.Contains("details updated") &&
-                        !line.EndsWith("updated —"))
-                    .OrderByDescending(line => LogUtils.ExtractTimestamp(line))
-                    .Take(10)
-                    .Select(line =>
-                    {
-                        var timestamp = LogUtils.ExtractTimestamp(line);
-                        var formatted = LogUtils.FormatTimestamp(timestamp);
-                        var message = line.Split(" - ", 2)[1]; // Everything after the timestamp
-                        return $"{formatted} - {message}";
-                    })
-                    .ToList();
+                .Where(line => !string.IsNullOrWhiteSpace(line))
+                .Select(line =>
+                {
+                    var parts = line.Split(" - ", 2);
+                    // If we got two parts, return the part after " - "
+                    // Otherwise return the entire line
+                    return parts.Length == 2
+                        ? parts[1]
+                        : parts[0];
+                })
+                .ToList();
+
 
             // Read low stock reminders from queue
             var reminders = await _stockReminderQueueService.PeekRecentRemindersAsync();
