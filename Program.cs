@@ -1,4 +1,5 @@
 using ABC_Retail.Services;
+using ABC_Retail.Services.Logging.AzureFileShare_Logging;
 using ABC_Retail.Services.Logging.Core;
 using ABC_Retail.Services.Logging.Domains.Orders;
 using ABC_Retail.Services.Logging.Domains.Products;
@@ -6,6 +7,7 @@ using ABC_Retail.Services.Logging.File_Logging;
 using ABC_Retail.Services.Queues;
 using Azure.Data.Tables;
 using Azure.Storage.Blobs;
+using Azure.Storage.Files.Shares;
 using DotNetEnv;
 
 namespace ABC_Retail
@@ -16,23 +18,22 @@ namespace ABC_Retail
         {
             var builder = WebApplication.CreateBuilder(args);
 
-            // Add services to the container.
+            // ------- Core ASP.NET Setup -------
             builder.Services.AddControllersWithViews();
             builder.Services.AddHttpContextAccessor();
-
             builder.Services.AddSession(options =>
             {
-                options.IdleTimeout = TimeSpan.FromMinutes(30); // Session timeout
-                options.Cookie.HttpOnly = true;                 // Secure the session cookie
-                options.Cookie.IsEssential = true;              // Ensure it's saved even if GDPR applies
+                options.IdleTimeout = TimeSpan.FromMinutes(30);
+                options.Cookie.HttpOnly = true;                 
+                options.Cookie.IsEssential = true;              
             });
 
             // Load secrets from .env file (only for local dev)
             Env.Load();
 
-            // Load environment variable securely
-            string? connectionString = Environment.GetEnvironmentVariable("AzureStorageConnection");
+            // -------- Storage Connection -------
 
+            string? connectionString = Environment.GetEnvironmentVariable("AzureStorageConnection");
             if (string.IsNullOrWhiteSpace(connectionString))
             {
                 throw new Exception("AzureStorageConnection environment variable not found.");
@@ -62,7 +63,6 @@ namespace ABC_Retail
                 var productQueue = sp.GetRequiredService<ProductQueueService>();
                 return new ProductService(tableClient, productQueue);
             });
-
             builder.Services.AddSingleton(new CustomerService(tableServiceClient));
             builder.Services.AddSingleton<CartService>(sp =>
             {
@@ -84,19 +84,50 @@ namespace ABC_Retail
                 return new OrderService(tableServiceClient, orderQueueService, stockReminderQueueService,orderLogService);
             });
 
-            // Register Logging Infrastructure
-            builder.Services.AddSingleton<ILogPathResolver>(sp =>
+            // ------ AZURE FILE SHARE LOGGING -------
+
+            // 1) Grab a flag from config to decide which implementation to use
+            var useFileShareLogs = bool.TryParse(
+                Environment.GetEnvironmentVariable("USE_AZURE_FILE_SHARE_LOGS"),
+                out var flag
+            ) && flag;
+
+            if (useFileShareLogs)
             {
+                // 2a) Azure Files paths
+                var fileShareName = Environment.GetEnvironmentVariable("AzureFileShareName");
+                if (string.IsNullOrWhiteSpace(fileShareName))
+                    throw new Exception("AzureFileShareName environment variable not found.");
+
+                builder.Services.AddSingleton(sp =>
+                {
+                    var conn = Environment.GetEnvironmentVariable("AzureStorageConnection")!;
+                    return new ShareServiceClient(conn);
+                });
+
+                builder.Services.AddSingleton<ILogPathResolver>(sp =>
+                {
+                    var shareSvc = sp.GetRequiredService<ShareServiceClient>();
+                    return new AzureFileSharePathResolver(shareSvc, fileShareName);
+                });
+
+                // 2b) You’ll later register AzureFileShareLogWriter here instead
+                builder.Services.AddSingleton<ILogWriter, AzureFileShareLogWriter>();
+            }
+            else
+            {
+                // 3) Legacy UNC/file-share resolver
                 var logBasePath = Environment.GetEnvironmentVariable("LogBasePath");
-                return new FileLogPathResolver(logBasePath);
-            });
+                builder.Services.AddSingleton<ILogPathResolver>(sp =>
+                    new FileLogPathResolver(logBasePath)
+                );
 
+                // 4) Legacy file writer
+                builder.Services.AddSingleton<ILogWriter, FileLogWriter>();
+            }
 
-            builder.Services.AddSingleton<ILogWriter, FileLogWriter>();
             builder.Services.AddScoped<ProductLogService>();
             
-
-
 
 
             var app = builder.Build();
