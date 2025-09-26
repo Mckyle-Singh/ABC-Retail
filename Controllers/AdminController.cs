@@ -401,6 +401,18 @@ namespace ABC_Retail.Controllers
             return View(orders);
         }
 
+        [HttpPost]
+        public async Task<IActionResult> MarkAsShipped(string customerId, string orderId)
+        {
+            if (string.IsNullOrEmpty(customerId) || string.IsNullOrEmpty(orderId))
+                return BadRequest();
+
+            await _orderService.MarkAsShippedAsync(customerId, orderId);
+
+            TempData["SuccessMessage"] = $"Order {orderId} marked as shipped!";
+            return RedirectToAction("ViewAllOrders");
+        }
+
 
         public IActionResult Logout()
         {

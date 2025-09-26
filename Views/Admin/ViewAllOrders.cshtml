@@ -40,10 +40,14 @@
                             </p>
                             <p class="card-text text-muted"><small>@order.Timestamp?.ToLocalTime().ToString("f")</small></p>
                         </div>
-                        <div class="card-footer bg-transparent border-0 d-flex justify-content-between">
-                            <a href="#" class="btn btn-sm btn-outline-primary disabled">Details</a>
-                            <button type="button" class="btn btn-sm btn-outline-success" disabled>Mark as Shipped</button>
-                        </div>
+                        <form asp-action="MarkAsShipped" method="post" class="d-inline">
+                            <input type="hidden" name="customerId" value="@order.PartitionKey" />
+                            <input type="hidden" name="orderId" value="@order.RowKey" />
+                            <button type="submit" class="btn btn-sm btn-outline-success"
+                                    @(order.Status == "Shipped" ? "disabled" : "")>
+                                Mark as Shipped
+                            </button>
+                        </form>
                     </div>
                 </div>
             }

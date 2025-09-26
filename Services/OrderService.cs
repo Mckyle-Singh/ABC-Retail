@@ -147,5 +147,28 @@ namespace ABC_Retail.Services
 
             return orders;
         }
+
+        public async Task MarkAsShippedAsync(string customerId, string orderId)
+        {
+            try
+            {
+                // Retrieve the order
+                var response = await _orderTable.GetEntityAsync<Order>(customerId, orderId);
+                var order = response.Value;
+
+                // Update status
+                order.Status = "Shipped";
+                order.Timestamp = DateTimeOffset.UtcNow; // Optional: update timestamp for tracking
+
+                // Save changes
+                await _orderTable.UpdateEntityAsync(order, order.ETag, TableUpdateMode.Replace);
+            }
+            catch (RequestFailedException ex)
+            {
+                Console.WriteLine($"Error updating order {orderId}: {ex.Message}");
+                throw;
+            }
+        }
+
     }
 }
