@@ -5,6 +5,9 @@ using ABC_Retail.Services.Queues;
 using Azure;
 using Azure.Data.Tables;
 using Newtonsoft.Json;
+using System.Text;
+
+
 
 namespace ABC_Retail.Services
 {
@@ -150,24 +153,20 @@ namespace ABC_Retail.Services
 
         public async Task MarkAsShippedAsync(string customerId, string orderId)
         {
-            try
-            {
-                // Retrieve the order
-                var response = await _orderTable.GetEntityAsync<Order>(customerId, orderId);
-                var order = response.Value;
+            // 1️⃣ Update order status in Table Storage
+            var response = await _orderTable.GetEntityAsync<Order>(customerId, orderId);
+            var order = response.Value;
+            order.Status = "Shipped";
+            await _orderTable.UpdateEntityAsync(order, order.ETag, TableUpdateMode.Replace);
 
-                // Update status
-                order.Status = "Shipped";
-                order.Timestamp = DateTimeOffset.UtcNow; // Optional: update timestamp for tracking
+            // 2️⃣ Call HTTP-triggered Function
+            var payload = new { OrderId = orderId, CustomerId = customerId };
+            var content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
 
-                // Save changes
-                await _orderTable.UpdateEntityAsync(order, order.ETag, TableUpdateMode.Replace);
-            }
-            catch (RequestFailedException ex)
-            {
-                Console.WriteLine($"Error updating order {orderId}: {ex.Message}");
-                throw;
-            }
+
+            var functionUrl = "http://localhost:7225/api/MarkAsShippedHttpFunction"; // replace with your Function URL
+            using var client = new HttpClient();
+            await client.PostAsync(functionUrl, content);
         }
 
     }
