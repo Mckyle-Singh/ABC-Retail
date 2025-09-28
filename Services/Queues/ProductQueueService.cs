@@ -22,7 +22,7 @@ namespace ABC_Retail.Services.Queues
         {
             var json = JsonSerializer.Serialize(message);
             var base64 = Convert.ToBase64String(Encoding.UTF8.GetBytes(json));
-            await _queueClient.SendMessageAsync(base64);
+            await _queueClient.SendMessageAsync(base64,visibilityTimeout: TimeSpan.Zero);
         }
 
     }

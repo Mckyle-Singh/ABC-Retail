@@ -192,6 +192,26 @@ namespace ABC_Retail.Controllers
             string? originalFileName = null;
 
             // ✅ Upload image to Blob Storage
+            //if (product.ImageFile?.Length > 0)
+            //{
+            //    using var stream = product.ImageFile.OpenReadStream();
+            //    var contentType = product.ImageFile.ContentType;
+            //    originalFileName = product.ImageFile.FileName;
+
+            //    try
+            //    {
+            //        product.ImageUrl = await _blobImageService.UploadImageAsync(stream, originalFileName, contentType);
+            //        Console.WriteLine($"Image uploaded: {product.ImageUrl}");
+            //    }
+            //    catch (Exception ex)
+            //    {
+            //        Console.WriteLine($"Image upload failed: {ex.Message}");
+            //        ModelState.AddModelError("ImageFile", "Image upload failed. Please try again.");
+            //        return View(product);
+            //    }
+            //}
+
+            // ✅ Upload image via BlobImageService (now calls your HTTP function internally)
             if (product.ImageFile?.Length > 0)
             {
                 using var stream = product.ImageFile.OpenReadStream();
@@ -205,8 +225,8 @@ namespace ABC_Retail.Controllers
                 }
                 catch (Exception ex)
                 {
-                    Console.WriteLine($"Image upload failed: {ex.Message}");
-                    ModelState.AddModelError("ImageFile", "Image upload failed. Please try again.");
+                    Console.WriteLine($"Image upload failed: {ex}");
+                    ModelState.AddModelError("ImageFile", $"Image upload failed: {ex.Message}");
                     return View(product);
                 }
             }

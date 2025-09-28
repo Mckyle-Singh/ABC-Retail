@@ -39,6 +39,7 @@ namespace ABC_Retail
                 throw new Exception("AzureStorageConnection environment variable not found.");
             }
 
+            builder.Services.AddHttpClient();
             // Register BlobServiceClient for DI
             builder.Services.AddSingleton(new BlobServiceClient(connectionString));
 
