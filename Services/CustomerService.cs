@@ -1,18 +1,23 @@
 ﻿using ABC_Retail.Models;
+using ABC_Retail.Models.DTOs;
+using ABC_Retail.Services.Queues;
 using Azure;
 using Azure.Data.Tables;
 using System.Security.Cryptography;
 using System.Text;
+using System.Text.Json;
 
 namespace ABC_Retail.Services
 {
     public class CustomerService
     {
         private readonly TableClient _table;
-        public CustomerService(TableServiceClient serviceClient)
+        private readonly CustomerRegistrationQueueService _queueService;
+        public CustomerService(TableServiceClient serviceClient, CustomerRegistrationQueueService queueService)
         {
             _table = serviceClient.GetTableClient("Customers");
             _table.CreateIfNotExists(); // Safe init, same as ProductService
+            _queueService = queueService;
         }
 
         // Register a new customer
@@ -26,6 +31,17 @@ namespace ABC_Retail.Services
             customer.PasswordHash = HashPassword(customer.PasswordHash.Trim());
             customer.RegisteredOn = DateTime.UtcNow;
             customer.IsActive = true;
+
+            // Send message to the customer registration queue
+            var messageDto = new CustomerRegistrationQueueMessageDTO
+            {
+                FullName = customer.FullName,
+                Email = customer.Email,
+                PasswordHash = customer.PasswordHash,
+                RegisteredOn = customer.RegisteredOn
+            };
+
+           await _queueService.SendCustomerRegistrationAsync(JsonSerializer.Serialize(messageDto));
 
             await _table.AddEntityAsync(customer);
             return true;

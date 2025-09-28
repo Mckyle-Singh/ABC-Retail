@@ -52,6 +52,7 @@ namespace ABC_Retail
             builder.Services.AddSingleton(new OrderPlacedQueueService(connectionString, "order-placed-queue"));
             builder.Services.AddSingleton(new ProductQueueService(connectionString, "product-updates-queue"));
             builder.Services.AddSingleton(new StockReminderQueueService(connectionString, "stock-reminder-queue"));
+            builder.Services.AddSingleton(new CustomerRegistrationQueueService(connectionString, "customer-registration-queue"));
 
             // Register Core Domain Services
             builder.Services.AddSingleton(sp =>
@@ -60,7 +61,15 @@ namespace ABC_Retail
                 var productQueue = sp.GetRequiredService<ProductQueueService>();
                 return new ProductService(tableClient, productQueue);
             });
-            builder.Services.AddSingleton(new CustomerService(tableServiceClient));
+
+            //builder.Services.AddSingleton(new CustomerService(tableServiceClient));
+            builder.Services.AddSingleton(sp =>
+            {
+                var tableClient = sp.GetRequiredService<TableServiceClient>();
+                var queueService = sp.GetRequiredService<CustomerRegistrationQueueService>();
+                return new CustomerService(tableClient, queueService);
+            });
+
             builder.Services.AddSingleton<CartService>(sp =>
             {
                 var tableClient = sp.GetRequiredService<TableServiceClient>();
