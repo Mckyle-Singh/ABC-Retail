@@ -10,12 +10,16 @@ namespace ABC_Retail.Services
     {
         private readonly TableClient _table;
         private readonly ProductQueueService _queue;
+        private readonly ProductQueueService _tablequeue;
 
-        public ProductService(TableServiceClient serviceClient, ProductQueueService queue)
+
+        public ProductService(TableServiceClient serviceClient, ProductQueueService queue, ProductQueueService tableQueue)
         {
             _table = serviceClient.GetTableClient("Products");
             _table.CreateIfNotExists(); // Safe init
             _queue = queue;
+            _tablequeue = tableQueue;
+           
 
         }
 
@@ -32,6 +36,7 @@ namespace ABC_Retail.Services
             };
 
             await _queue.EnqueueProductChangeAsync(message);
+              // table writer
         }
 
 
@@ -79,6 +84,7 @@ namespace ABC_Retail.Services
             };
 
             await _queue.EnqueueProductChangeAsync(message);
+            await _tablequeue.EnqueueProductChangeAsync(message);
         }
 
 

@@ -41,7 +41,16 @@ namespace ABC_Retail.Services
                 RegisteredOn = customer.RegisteredOn
             };
 
-           await _queueService.SendCustomerRegistrationAsync(JsonSerializer.Serialize(messageDto));
+            // Log the message so you can see it in console
+            Console.WriteLine("Sending customer registration message to queue:");
+            var messageJson = JsonSerializer.Serialize(messageDto);
+            Console.WriteLine(messageJson);
+
+            await _queueService.SendCustomerRegistrationAsync(JsonSerializer.Serialize(messageDto));
+
+            // Optionally log after it is added
+            Console.WriteLine($"Customer {customer.FullName} added to Azure Table and queue message sent.");
+
 
             await _table.AddEntityAsync(customer);
             return true;
