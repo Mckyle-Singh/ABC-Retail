@@ -39,6 +39,7 @@ namespace ABC_Retail
                 throw new Exception("AzureStorageConnection environment variable not found.");
             }
 
+            builder.Services.AddHttpClient();
             // Register BlobServiceClient for DI
             builder.Services.AddSingleton(new BlobServiceClient(connectionString));
 
@@ -51,15 +52,27 @@ namespace ABC_Retail
             builder.Services.AddSingleton(new OrderPlacedQueueService(connectionString, "order-placed-queue"));
             builder.Services.AddSingleton(new ProductQueueService(connectionString, "product-updates-queue"));
             builder.Services.AddSingleton(new StockReminderQueueService(connectionString, "stock-reminder-queue"));
+            builder.Services.AddSingleton(new CustomerRegistrationQueueService(connectionString, "customer-registration-queue"));
+            builder.Services.AddSingleton(new ProductQueueService(connectionString, "product-table-queue"));
+
 
             // Register Core Domain Services
             builder.Services.AddSingleton(sp =>
             {
                 var tableClient = sp.GetRequiredService<TableServiceClient>();
                 var productQueue = sp.GetRequiredService<ProductQueueService>();
-                return new ProductService(tableClient, productQueue);
+                var tableQueue = sp.GetRequiredService<ProductQueueService>();
+                return new ProductService(tableClient, productQueue,tableQueue);
             });
-            builder.Services.AddSingleton(new CustomerService(tableServiceClient));
+
+            //builder.Services.AddSingleton(new CustomerService(tableServiceClient));
+            builder.Services.AddSingleton(sp =>
+            {
+                var tableClient = sp.GetRequiredService<TableServiceClient>();
+                var queueService = sp.GetRequiredService<CustomerRegistrationQueueService>();
+                return new CustomerService(tableClient, queueService);
+            });
+
             builder.Services.AddSingleton<CartService>(sp =>
             {
                 var tableClient = sp.GetRequiredService<TableServiceClient>();

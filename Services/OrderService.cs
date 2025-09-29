@@ -5,6 +5,9 @@ using ABC_Retail.Services.Queues;
 using Azure;
 using Azure.Data.Tables;
 using Newtonsoft.Json;
+using System.Text;
+
+
 
 namespace ABC_Retail.Services
 {
@@ -147,5 +150,24 @@ namespace ABC_Retail.Services
 
             return orders;
         }
+
+        public async Task MarkAsShippedAsync(string customerId, string orderId)
+        {
+            // 1️⃣ Update order status in Table Storage
+            var response = await _orderTable.GetEntityAsync<Order>(customerId, orderId);
+            var order = response.Value;
+            order.Status = "Shipped";
+            await _orderTable.UpdateEntityAsync(order, order.ETag, TableUpdateMode.Replace);
+
+            // 2️⃣ Call HTTP-triggered Function
+            var payload = new { OrderId = orderId, CustomerId = customerId };
+            var content = new StringContent(JsonConvert.SerializeObject(payload), Encoding.UTF8, "application/json");
+
+
+            var functionUrl = "http://localhost:7225/api/MarkAsShippedHttpFunction"; // replace with your Function URL
+            using var client = new HttpClient();
+            await client.PostAsync(functionUrl, content);
+        }
+
     }
 }
