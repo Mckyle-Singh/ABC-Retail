@@ -15,7 +15,7 @@ public class Function1
     }
 
     [Function(nameof(Function1))]
-    public void Run([QueueTrigger("myqueue-items", Connection = "")] QueueMessage message)
+    public void Run([QueueTrigger("product-updates-queue", Connection = "AzureStorageConnection")] QueueMessage message)
     {
         _logger.LogInformation("C# Queue trigger function processed: {messageText}", message.MessageText);
     }
