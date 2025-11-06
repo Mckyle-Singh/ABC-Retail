@@ -10,6 +10,13 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Remove="ABC-Functions\**" />
+    <Content Remove="ABC-Functions\**" />
+    <EmbeddedResource Remove="ABC-Functions\**" />
+    <None Remove="ABC-Functions\**" />
+  </ItemGroup>
+
+  <ItemGroup>
     <PackageReference Include="Azure.Data.Tables" Version="12.11.0" />
     <PackageReference Include="Azure.Storage.Blobs" Version="12.25.0" />
     <PackageReference Include="Azure.Storage.Files.Shares" Version="12.23.0" />
