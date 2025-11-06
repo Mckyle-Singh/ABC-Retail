@@ -32,7 +32,9 @@ namespace ABC_Retail.Services
                 RowKey = product.RowKey,
                 Timestamp = DateTime.UtcNow,
                 ChangeType = "Create",
-                Name = product.Name
+                Name = product.Name,
+                Price = product.Price,
+                StockQty = product.StockQty,
             };
 
             await _queue.EnqueueProductChangeAsync(message);
